@@ -1,0 +1,2 @@
+# jakiś komentarz
+print("krowa")
