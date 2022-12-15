@@ -16,6 +16,8 @@ import re
 
 class LoginWindow(object):
 
+    loggedSignal = QtCore.pyqtSignal()
+
     def messageBox(self, title, icon, text, infoText="", detailText=""):
         msg = QtWidgets.QMessageBox()
         msg.setIcon(icon)
@@ -56,9 +58,11 @@ class LoginWindow(object):
             self.messageBox("Logowanie nie powiodło się", QtWidgets.QMessageBox.Warning, "Niewłaściwy email. Adres musi zawierać znaki @ i .")
         else:
             haslo_md5 = hashlib.md5(haslo.encode('utf-8')).hexdigest()
-
             if(self.checkLoginData(email, haslo_md5)):
                 self.messageBox("Logowanie powiodło się!", QtWidgets.QMessageBox.Information, "Zostałeś zalogowany.")
+                global Form
+                Form.close()
+                Ui_MainWindow.show(self)
             else:
                 self.messageBox("Logowanie nie powiodło się", QtWidgets.QMessageBox.Warning, "Hasło jest nieprawidłowe.")
 
@@ -107,7 +111,7 @@ class LoginWindow(object):
         # Mój kod
 
         self.pushButton.clicked.connect(self.login)
-
+        
 
         self.retranslateUi(Form)
         QtCore.QMetaObject.connectSlotsByName(Form)
@@ -156,6 +160,16 @@ class Ui_MainWindow(object):
         self.label.setText(_translate("MainWindow", "Witamy w main window!"))
         self.pushButton.setText(_translate("MainWindow", "Wyloguj się"))
 
+    def show(self):
+        global MainWindow
+        MainWindow = QtWidgets.QMainWindow()
+        ui = Ui_MainWindow()
+        ui.setupUi(MainWindow)
+        MainWindow.show()
+        try:
+            sys.exit(app.exec_())
+        except:
+            pass
 
 if __name__ == "__main__":
     # import sys
