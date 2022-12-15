@@ -9,9 +9,59 @@
 
 
 from PyQt5 import QtCore, QtGui, QtWidgets
+import hashlib
+import psycopg2
+from config import config
+import re
 
+class LoginWindow(object):
 
-class Ui_Form(object):
+    def messageBox(self, title, icon, text, infoText="", detailText=""):
+        msg = QtWidgets.QMessageBox()
+        msg.setIcon(icon)
+        msg.setText(text)
+        msg.setInformativeText(infoText)
+        msg.setWindowTitle(title)
+        msg.setDetailedText(detailText)
+        msg.exec_()
+
+    def checkLoginData(self, email, haslo):
+        conn = None
+        try:
+            params = config()                       # wczytujemy paramtery połaczenia z bazą
+            conn = psycopg2.connect(**params)       # łączenie z bazą
+            cur = conn.cursor()                     # tworzenie kursora do bazy
+            query = f"SELECT haslo FROM uzytkownicy WHERE email = \'{email}\'" # query
+            cur.execute(query)
+            result = cur.fetchone()[0]
+        except (Exception, psycopg2.DatabaseError) as err:
+            print(f"Błąd połączenia z bazą: {err}")
+            return False
+        finally:
+            if conn is not None:
+                conn.close()                        # zamknięcie konektora do bazy
+        
+        if result == haslo:
+            return True
+
+    def login(self):
+
+        email_regex = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
+
+        email = self.lineEdit.text()
+        haslo = self.lineEdit_2.text()
+        if(len(email) == 0 or len(haslo) == 0):
+            self.messageBox("Logowanie nie powiodło się", QtWidgets.QMessageBox.Warning, "Wpisz adres e-mail i hasło.")
+        elif not re.fullmatch(email_regex, email):
+            self.messageBox("Logowanie nie powiodło się", QtWidgets.QMessageBox.Warning, "Niewłaściwy email. Adres musi zawierać znaki @ i .")
+        else:
+            haslo_md5 = hashlib.md5(haslo.encode('utf-8')).hexdigest()
+
+            if(self.checkLoginData(email, haslo_md5)):
+                self.messageBox("Logowanie powiodło się!", QtWidgets.QMessageBox.Information, "Zostałeś zalogowany.")
+            else:
+                self.messageBox("Logowanie nie powiodło się", QtWidgets.QMessageBox.Warning, "Hasło jest nieprawidłowe.")
+
     def setupUi(self, Form):
         Form.setObjectName("Form")
         Form.resize(589, 358)
@@ -54,17 +104,23 @@ class Ui_Form(object):
         self.pushButton.setObjectName("pushButton")
         self.verticalLayout.addWidget(self.pushButton)
 
+        # Mój kod
+
+        self.pushButton.clicked.connect(self.login)
+
+
         self.retranslateUi(Form)
         QtCore.QMetaObject.connectSlotsByName(Form)
 
     def retranslateUi(self, Form):
         _translate = QtCore.QCoreApplication.translate
-        Form.setWindowTitle(_translate("Form", "Form"))
+        Form.setWindowTitle(_translate("Form", "Logowanie"))
         self.label_2.setText(_translate("Form", "Dziennik - Logowanie"))
         self.label_4.setText(_translate("Form", "_________________________________________________________________________________________________"))
         self.label_3.setText(_translate("Form", "Adres e-mail"))
         self.label_5.setText(_translate("Form", "Hasło"))
         self.pushButton.setText(_translate("Form", "Zaloguj"))
+
 
 
 if __name__ == "__main__":
