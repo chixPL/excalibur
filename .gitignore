@@ -1,3 +1,5 @@
 .venv/
 base/
 __pycache__/
+tests/
+ui/ui*.py
