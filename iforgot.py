@@ -16,7 +16,14 @@ import hashlib
 from config import config
 from uuid import uuid4
 
-class Ui_Dialog(object):
+class Ui_IForgot(object):
+
+    def __init__(self):
+        Dialog = QtWidgets.QDialog()
+        self.Dialog = Dialog
+        self.setupUi(Dialog)
+        self.Dialog.show()
+        self.Dialog.exec()
 
     def initProcess(self):
         email = self.lineEdit.text()
@@ -48,6 +55,7 @@ class Ui_Dialog(object):
                 cur.execute(query)
                 conn.commit()
                 self.messageBox("Reset hasła pomyślny", QtWidgets.QMessageBox.Information, "Twoje hasło zostało zresetowane.")
+                self.Dialog.close()
             else:
                 self.messageBox("Reset hasła nie powiódł się", QtWidgets.QMessageBox.Warning, "Niewłaściwy token. Spróbuj ponownie.")
         except (Exception, psycopg2.DatabaseError) as err:
@@ -68,8 +76,8 @@ class Ui_Dialog(object):
         msg.exec_()
 
     def show_hide(self):
-        global Dialog
-        Dialog.resize(451, 250)
+        
+        self.Dialog.resize(451, 250)
         self.frame.hide()
         self.frame_2.show()
         self.frame_2.raise_()
@@ -217,7 +225,7 @@ class Ui_Dialog(object):
 
     def retranslateUi(self, Dialog):
         _translate = QtCore.QCoreApplication.translate
-        Dialog.setWindowTitle(_translate("Dialog", "Dialog"))
+        Dialog.setWindowTitle(_translate("Dialog", "Zapomniałem hasła"))
         self.label.setText(_translate("Dialog", "Zapomniałem hasła"))
         self.label_2.setText(_translate("Dialog", "Adres e-mail"))
         self.pushButton.setText(_translate("Dialog", "Przypomnij hasło"))
@@ -225,12 +233,3 @@ class Ui_Dialog(object):
         self.label_4.setText(_translate("Dialog", "Podaj nowe hasło"))
         self.pushButton_2.setText(_translate("Dialog", "Zmień hasło"))
 
-
-if __name__ == "__main__":
-    import sys
-    app = QtWidgets.QApplication(sys.argv)
-    Dialog = QtWidgets.QDialog()
-    ui = Ui_Dialog()
-    ui.setupUi(Dialog)
-    Dialog.show()
-    sys.exit(app.exec_())

@@ -13,6 +13,7 @@ import hashlib
 import psycopg2
 from config import config
 import re
+from iforgot import Ui_IForgot
 
 class LoginWindow(object):
 
@@ -52,7 +53,7 @@ class LoginWindow(object):
 
         email = self.lineEdit.text()
         haslo = self.lineEdit_2.text()
-        if(len(email) == 0 or len(haslo) == 0):
+        if len(email) == 0 or len(haslo) == 0:
             self.messageBox("Logowanie nie powiodło się", QtWidgets.QMessageBox.Warning, "Wpisz adres e-mail i hasło.")
         elif not re.fullmatch(email_regex, email):
             self.messageBox("Logowanie nie powiodło się", QtWidgets.QMessageBox.Warning, "Niewłaściwy email. Adres musi zawierać znaki @ i .")
@@ -64,13 +65,13 @@ class LoginWindow(object):
                 Form.close()
                 Ui_MainWindow.show(self)
             else:
-                self.messageBox("Logowanie nie powiodło się", QtWidgets.QMessageBox.Warning, "Hasło jest nieprawidłowe.")
-
+                self.messageBox("Logowanie nie powiodło się", QtWidgets.QMessageBox.Warning, "Adres e-mail lub hasło jest nieprawidłowe.")
+    
     def setupUi(self, Form):
         Form.setObjectName("Form")
         Form.resize(589, 358)
         self.label_2 = QtWidgets.QLabel(Form)
-        self.label_2.setGeometry(QtCore.QRect(310, 10, 281, 61))
+        self.label_2.setGeometry(QtCore.QRect(240, 20, 341, 61))
         font = QtGui.QFont()
         font.setFamily("Calibri")
         font.setPointSize(24)
@@ -82,36 +83,39 @@ class LoginWindow(object):
         self.label = QtWidgets.QLabel(Form)
         self.label.setGeometry(QtCore.QRect(10, 10, 71, 71))
         self.label.setText("")
-        self.label.setPixmap(QtGui.QPixmap("login.png"))
+        self.label.setPixmap(QtGui.QPixmap("ui/../login.png"))
         self.label.setScaledContents(True)
         self.label.setObjectName("label")
-        self.widget = QtWidgets.QWidget(Form)
-        self.widget.setGeometry(QtCore.QRect(170, 90, 251, 241))
-        self.widget.setObjectName("widget")
-        self.verticalLayout = QtWidgets.QVBoxLayout(self.widget)
+        self.layoutWidget = QtWidgets.QWidget(Form)
+        self.layoutWidget.setGeometry(QtCore.QRect(170, 90, 251, 241))
+        self.layoutWidget.setObjectName("layoutWidget")
+        self.verticalLayout = QtWidgets.QVBoxLayout(self.layoutWidget)
         self.verticalLayout.setContentsMargins(0, 0, 0, 0)
         self.verticalLayout.setObjectName("verticalLayout")
-        self.label_3 = QtWidgets.QLabel(self.widget)
+        self.label_3 = QtWidgets.QLabel(self.layoutWidget)
         self.label_3.setObjectName("label_3")
         self.verticalLayout.addWidget(self.label_3)
-        self.lineEdit = QtWidgets.QLineEdit(self.widget)
+        self.lineEdit = QtWidgets.QLineEdit(self.layoutWidget)
         self.lineEdit.setObjectName("lineEdit")
         self.verticalLayout.addWidget(self.lineEdit)
-        self.label_5 = QtWidgets.QLabel(self.widget)
+        self.label_5 = QtWidgets.QLabel(self.layoutWidget)
         self.label_5.setObjectName("label_5")
         self.verticalLayout.addWidget(self.label_5)
-        self.lineEdit_2 = QtWidgets.QLineEdit(self.widget)
+        self.lineEdit_2 = QtWidgets.QLineEdit(self.layoutWidget)
         self.lineEdit_2.setEchoMode(QtWidgets.QLineEdit.Password)
         self.lineEdit_2.setObjectName("lineEdit_2")
         self.verticalLayout.addWidget(self.lineEdit_2)
-        self.pushButton = QtWidgets.QPushButton(self.widget)
+        self.pushButton = QtWidgets.QPushButton(self.layoutWidget)
         self.pushButton.setObjectName("pushButton")
         self.verticalLayout.addWidget(self.pushButton)
+        self.pushButton_2 = QtWidgets.QPushButton(self.layoutWidget)
+        self.pushButton_2.setObjectName("pushButton_2")
+        self.verticalLayout.addWidget(self.pushButton_2)
 
         # Mój kod
 
         self.pushButton.clicked.connect(self.login)
-        
+        self.pushButton_2.clicked.connect(Ui_IForgot)
 
         self.retranslateUi(Form)
         QtCore.QMetaObject.connectSlotsByName(Form)
@@ -124,6 +128,7 @@ class LoginWindow(object):
         self.label_3.setText(_translate("Form", "Adres e-mail"))
         self.label_5.setText(_translate("Form", "Hasło"))
         self.pushButton.setText(_translate("Form", "Zaloguj"))
+        self.pushButton_2.setText(_translate("Form", "Zapomniałeś hasła?"))
 
 class Ui_MainWindow(object):
 

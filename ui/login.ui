@@ -16,9 +16,9 @@
   <widget class="QLabel" name="label_2">
    <property name="geometry">
     <rect>
-     <x>310</x>
-     <y>10</y>
-     <width>281</width>
+     <x>240</x>
+     <y>20</y>
+     <width>341</width>
      <height>61</height>
     </rect>
    </property>
@@ -58,13 +58,13 @@
     <string/>
    </property>
    <property name="pixmap">
-    <pixmap>D:/Pobrane/noun-login-1043492.png</pixmap>
+    <pixmap>../login.png</pixmap>
    </property>
    <property name="scaledContents">
     <bool>true</bool>
    </property>
   </widget>
-  <widget class="QWidget" name="">
+  <widget class="QWidget" name="layoutWidget">
    <property name="geometry">
     <rect>
      <x>170</x>
@@ -102,6 +102,13 @@
      <widget class="QPushButton" name="pushButton">
       <property name="text">
        <string>Zaloguj</string>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QPushButton" name="pushButton_2">
+      <property name="text">
+       <string>Zapomniałeś hasła?</string>
       </property>
      </widget>
     </item>
