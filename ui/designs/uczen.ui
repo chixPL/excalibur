@@ -1,0 +1,377 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>800</width>
+    <height>600</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Dziennik</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <widget class="QLabel" name="label_2">
+    <property name="geometry">
+     <rect>
+      <x>530</x>
+      <y>0</y>
+      <width>261</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Witaj, Jan Kowalski!</string>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+    </property>
+   </widget>
+   <widget class="QTableWidget" name="tableWidget">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>30</y>
+      <width>791</width>
+      <height>491</height>
+     </rect>
+    </property>
+    <attribute name="horizontalHeaderVisible">
+     <bool>true</bool>
+    </attribute>
+    <attribute name="horizontalHeaderDefaultSectionSize">
+     <number>78</number>
+    </attribute>
+    <attribute name="horizontalHeaderStretchLastSection">
+     <bool>false</bool>
+    </attribute>
+    <attribute name="verticalHeaderVisible">
+     <bool>true</bool>
+    </attribute>
+    <attribute name="verticalHeaderCascadingSectionResizes">
+     <bool>false</bool>
+    </attribute>
+    <attribute name="verticalHeaderStretchLastSection">
+     <bool>false</bool>
+    </attribute>
+    <row>
+     <property name="text">
+      <string>Informatyka</string>
+     </property>
+    </row>
+    <row>
+     <property name="text">
+      <string>Fizyka</string>
+     </property>
+    </row>
+    <row>
+     <property name="text">
+      <string>Język polski</string>
+     </property>
+    </row>
+    <row>
+     <property name="text">
+      <string>Język angielski</string>
+     </property>
+    </row>
+    <row>
+     <property name="text">
+      <string>Język niemiecki</string>
+     </property>
+    </row>
+    <row>
+     <property name="text">
+      <string>Geografia</string>
+     </property>
+    </row>
+    <row>
+     <property name="text">
+      <string>Biologia</string>
+     </property>
+    </row>
+    <row>
+     <property name="text">
+      <string>Wychowanie fizyczne</string>
+     </property>
+    </row>
+    <column>
+     <property name="text">
+      <string>id(1)</string>
+     </property>
+    </column>
+    <column>
+     <property name="text">
+      <string>id(2)</string>
+     </property>
+    </column>
+    <column>
+     <property name="text">
+      <string>id(3)</string>
+     </property>
+    </column>
+    <column>
+     <property name="text">
+      <string>Średnia</string>
+     </property>
+    </column>
+    <item row="0" column="0">
+     <property name="text">
+      <string>5</string>
+     </property>
+    </item>
+    <item row="0" column="1">
+     <property name="text">
+      <string>5-</string>
+     </property>
+    </item>
+    <item row="0" column="2">
+     <property name="text">
+      <string>5+</string>
+     </property>
+    </item>
+    <item row="0" column="3">
+     <property name="text">
+      <string>avg(a1:a3)</string>
+     </property>
+    </item>
+    <item row="1" column="0">
+     <property name="text">
+      <string>4</string>
+     </property>
+    </item>
+    <item row="1" column="1">
+     <property name="text">
+      <string>5+</string>
+     </property>
+    </item>
+    <item row="1" column="2">
+     <property name="text">
+      <string>5</string>
+     </property>
+    </item>
+    <item row="2" column="0">
+     <property name="text">
+      <string>5</string>
+     </property>
+    </item>
+    <item row="2" column="1">
+     <property name="text">
+      <string>6</string>
+     </property>
+    </item>
+    <item row="2" column="2">
+     <property name="text">
+      <string>5</string>
+     </property>
+    </item>
+    <item row="3" column="0">
+     <property name="text">
+      <string>6</string>
+     </property>
+    </item>
+    <item row="3" column="1">
+     <property name="text">
+      <string>6</string>
+     </property>
+    </item>
+    <item row="3" column="2">
+     <property name="text">
+      <string>6</string>
+     </property>
+    </item>
+    <item row="4" column="0">
+     <property name="text">
+      <string>5</string>
+     </property>
+    </item>
+    <item row="4" column="1">
+     <property name="text">
+      <string>4</string>
+     </property>
+    </item>
+    <item row="4" column="2">
+     <property name="text">
+      <string>5</string>
+     </property>
+    </item>
+    <item row="5" column="0">
+     <property name="text">
+      <string>5</string>
+     </property>
+    </item>
+    <item row="5" column="1">
+     <property name="text">
+      <string>5</string>
+     </property>
+    </item>
+    <item row="5" column="2">
+     <property name="text">
+      <string>5</string>
+     </property>
+    </item>
+    <item row="6" column="0">
+     <property name="text">
+      <string>4</string>
+     </property>
+    </item>
+    <item row="7" column="0">
+     <property name="text">
+      <string>6</string>
+     </property>
+    </item>
+   </widget>
+   <widget class="QLabel" name="label_3">
+    <property name="geometry">
+     <rect>
+      <x>40</x>
+      <y>320</y>
+      <width>181</width>
+      <height>41</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>ID będą niewidoczne</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_4">
+    <property name="geometry">
+     <rect>
+      <x>40</x>
+      <y>350</y>
+      <width>501</width>
+      <height>41</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Dwuklik na ocenę otwiera informacje o niej (jaki sprawdzian, data, waga)</string>
+    </property>
+   </widget>
+  </widget>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>800</width>
+     <height>22</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menuPlik">
+    <property name="title">
+     <string>Plik</string>
+    </property>
+    <addaction name="actionWyloguj_si"/>
+    <addaction name="actionZamknij_program"/>
+   </widget>
+   <widget class="QMenu" name="menuNauczyciel">
+    <property name="title">
+     <string>Nauczyciel</string>
+    </property>
+    <addaction name="actionDodaj_sprawdzian"/>
+    <addaction name="separator"/>
+    <addaction name="actionDodaj_oceny"/>
+    <addaction name="actionDodaj_wiele_ocen_2"/>
+    <addaction name="separator"/>
+    <addaction name="actionZmie_oceny_2"/>
+   </widget>
+   <widget class="QMenu" name="menuAdmin">
+    <property name="title">
+     <string>Admin</string>
+    </property>
+    <addaction name="actionDodaj_u_ytkownika"/>
+    <addaction name="actionZmie_w_a_ciwo_ci_u_ytkownika"/>
+    <addaction name="separator"/>
+    <addaction name="actionDodaj_klas_2"/>
+    <addaction name="actionZmie_w_a_ciwo_ci_klasy"/>
+   </widget>
+   <widget class="QMenu" name="menuUcze">
+    <property name="title">
+     <string>Uczeń</string>
+    </property>
+   </widget>
+   <addaction name="menuPlik"/>
+   <addaction name="menuUcze"/>
+   <addaction name="menuNauczyciel"/>
+   <addaction name="menuAdmin"/>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
+  <action name="actionWyloguj_si">
+   <property name="text">
+    <string>Wyloguj się</string>
+   </property>
+  </action>
+  <action name="actionZamknij_program">
+   <property name="text">
+    <string>Zamknij program</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+W</string>
+   </property>
+  </action>
+  <action name="actionDodaj_u_ytkownika">
+   <property name="text">
+    <string>Dodaj użytkownika</string>
+   </property>
+  </action>
+  <action name="actionDodaj_klas">
+   <property name="text">
+    <string>Dodaj klasę</string>
+   </property>
+  </action>
+  <action name="actionDodaj_sprawdzian">
+   <property name="text">
+    <string>Dodaj sprawdzian</string>
+   </property>
+  </action>
+  <action name="actionDodaj_ocen">
+   <property name="text">
+    <string>Dodaj ocenę</string>
+   </property>
+  </action>
+  <action name="actionDodaj_wiele_ocen">
+   <property name="text">
+    <string>Dodaj wiele ocen</string>
+   </property>
+  </action>
+  <action name="actionZmie_oceny">
+   <property name="text">
+    <string>Zmień oceny</string>
+   </property>
+  </action>
+  <action name="actionDodaj_oceny">
+   <property name="text">
+    <string>Dodaj ocenę</string>
+   </property>
+  </action>
+  <action name="actionDodaj_wiele_ocen_2">
+   <property name="text">
+    <string>Dodaj wiele ocen</string>
+   </property>
+  </action>
+  <action name="actionZmie_oceny_2">
+   <property name="text">
+    <string>Zmień oceny</string>
+   </property>
+  </action>
+  <action name="actionZmie_w_a_ciwo_ci_u_ytkownika">
+   <property name="text">
+    <string>Zmień właściwości użytkownika</string>
+   </property>
+  </action>
+  <action name="actionDodaj_klas_2">
+   <property name="text">
+    <string>Dodaj klasę</string>
+   </property>
+  </action>
+  <action name="actionZmie_w_a_ciwo_ci_klasy">
+   <property name="text">
+    <string>Zmień właściwości klasy</string>
+   </property>
+  </action>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

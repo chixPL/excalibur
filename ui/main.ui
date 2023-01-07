@@ -14,50 +14,74 @@
    <string>Dziennik</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <widget class="QWidget" name="layoutWidget">
+   <widget class="QLabel" name="label">
     <property name="geometry">
      <rect>
-      <x>70</x>
-      <y>90</y>
-      <width>681</width>
-      <height>281</height>
+      <x>10</x>
+      <y>0</y>
+      <width>51</width>
+      <height>21</height>
      </rect>
     </property>
-    <layout class="QVBoxLayout" name="verticalLayout">
-     <item>
-      <widget class="QLabel" name="label">
-       <property name="font">
-        <font>
-         <family>Calibri</family>
-         <pointsize>36</pointsize>
-        </font>
-       </property>
-       <property name="text">
-        <string>Witamy w main window!</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QLabel" name="label_2">
-       <property name="font">
-        <font>
-         <family>Calibri</family>
-         <pointsize>20</pointsize>
-        </font>
-       </property>
-       <property name="text">
-        <string>Twoja rola to:</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="pushButton">
-       <property name="text">
-        <string>Wyloguj się</string>
-       </property>
-      </widget>
-     </item>
-    </layout>
+    <property name="text">
+     <string>Klasa:</string>
+    </property>
+   </widget>
+   <widget class="QComboBox" name="comboBox">
+    <property name="geometry">
+     <rect>
+      <x>60</x>
+      <y>0</y>
+      <width>101</width>
+      <height>25</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_2">
+    <property name="geometry">
+     <rect>
+      <x>530</x>
+      <y>0</y>
+      <width>261</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Witaj, Jan Kowalski!</string>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+    </property>
+   </widget>
+   <widget class="QTableWidget" name="tableWidget">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>40</y>
+      <width>761</width>
+      <height>491</height>
+     </rect>
+    </property>
+    <row>
+     <property name="text">
+      <string>Jan Kowalski</string>
+     </property>
+    </row>
+    <row>
+     <property name="text">
+      <string>Adam Nowak</string>
+     </property>
+    </row>
+    <row>
+     <property name="text">
+      <string>Jan Nowak</string>
+     </property>
+    </row>
+    <column>
+     <property name="text">
+      <string>Spr1</string>
+     </property>
+    </column>
    </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">
@@ -69,8 +93,71 @@
      <height>22</height>
     </rect>
    </property>
+   <widget class="QMenu" name="menuPlik">
+    <property name="title">
+     <string>Plik</string>
+    </property>
+    <addaction name="actionWyloguj_si"/>
+    <addaction name="actionZamknij_program"/>
+   </widget>
+   <widget class="QMenu" name="menuNauczyciel">
+    <property name="title">
+     <string>Nauczyciel</string>
+    </property>
+    <addaction name="actionDodaj_sprawdzian"/>
+    <addaction name="actionDodaj_ocen"/>
+    <addaction name="actionDodaj_wiele_ocen"/>
+   </widget>
+   <widget class="QMenu" name="menuAdmin">
+    <property name="title">
+     <string>Admin</string>
+    </property>
+    <addaction name="actionDodaj_u_ytkownika"/>
+    <addaction name="actionDodaj_klas"/>
+   </widget>
+   <addaction name="menuPlik"/>
+   <addaction name="menuNauczyciel"/>
+   <addaction name="menuAdmin"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
+  <action name="actionWyloguj_si">
+   <property name="text">
+    <string>Wyloguj się</string>
+   </property>
+  </action>
+  <action name="actionZamknij_program">
+   <property name="text">
+    <string>Zamknij program</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+W</string>
+   </property>
+  </action>
+  <action name="actionDodaj_u_ytkownika">
+   <property name="text">
+    <string>Dodaj użytkownika</string>
+   </property>
+  </action>
+  <action name="actionDodaj_klas">
+   <property name="text">
+    <string>Dodaj klasę</string>
+   </property>
+  </action>
+  <action name="actionDodaj_sprawdzian">
+   <property name="text">
+    <string>Dodaj sprawdzian</string>
+   </property>
+  </action>
+  <action name="actionDodaj_ocen">
+   <property name="text">
+    <string>Dodaj ocenę</string>
+   </property>
+  </action>
+  <action name="actionDodaj_wiele_ocen">
+   <property name="text">
+    <string>Dodaj wiele ocen</string>
+   </property>
+  </action>
  </widget>
  <resources/>
  <connections/>

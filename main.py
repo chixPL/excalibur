@@ -27,9 +27,6 @@ class LoginWindow(object):
         self.lineEdit.clear()
         self.lineEdit_2.clear()
         self.Form.show()
-        
-    
-    loggedSignal = QtCore.pyqtSignal()
 
     def messageBox(self, title, icon, text, infoText="", detailText=""):
         msg = QtWidgets.QMessageBox()
