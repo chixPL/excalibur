@@ -17,6 +17,13 @@ from iforgot import Ui_IForgot
 
 class LoginWindow(object):
 
+    def __init__(self):
+        Form = QtWidgets.QWidget()
+        self.Form = Form
+        self.setupUi(Form)
+        self.Form.show()
+        
+    
     loggedSignal = QtCore.pyqtSignal()
 
     def messageBox(self, title, icon, text, infoText="", detailText=""):
@@ -61,9 +68,9 @@ class LoginWindow(object):
             haslo_md5 = hashlib.md5(haslo.encode('utf-8')).hexdigest()
             if(self.checkLoginData(email, haslo_md5)):
                 self.messageBox("Logowanie powiodło się!", QtWidgets.QMessageBox.Information, "Zostałeś zalogowany.")
-                global Form
-                Form.close()
-                Ui_MainWindow.show(self)
+                self.Form.close()
+                global main
+                main.show(self.lineEdit.text())
             else:
                 self.messageBox("Logowanie nie powiodło się", QtWidgets.QMessageBox.Warning, "Adres e-mail lub hasło jest nieprawidłowe.")
     
@@ -132,29 +139,72 @@ class LoginWindow(object):
 
 class Ui_MainWindow(object):
 
+    def __init__(self):
+        MainWindow = QtWidgets.QMainWindow()
+        self.MainWindow = MainWindow
+        self.setupUi(MainWindow)
+    
+    def show(self, email):
+        self.MainWindow.show()
+        self.getRoleByEmail(email)
+
+    def getRoleByEmail(self, email):
+        conn = None
+        try:
+            params = config()                       # wczytujemy paramtery połaczenia z bazą
+            conn = psycopg2.connect(**params)       # łączenie z bazą
+            cur = conn.cursor()                     # tworzenie kursora do bazy
+            query = f"SELECT rola FROM uzytkownicy WHERE email = \'{email}\'" # query
+            cur.execute(query)
+            result = cur.fetchone()[0]
+        except (Exception, psycopg2.DatabaseError) as err:
+            print(f"Błąd połączenia z bazą: {err}")
+            return False
+        finally:
+            if conn is not None:
+                conn.close()                        # zamknięcie konektora do bazy
+        self.role = result
+        self.label_2.setText(f"Twoja rola to: {self.role}")
+
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
         MainWindow.resize(800, 600)
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
-        self.label = QtWidgets.QLabel(self.centralwidget)
-        self.label.setGeometry(QtCore.QRect(60, 170, 671, 231))
+        self.layoutWidget = QtWidgets.QWidget(self.centralwidget)
+        self.layoutWidget.setGeometry(QtCore.QRect(70, 90, 681, 281))
+        self.layoutWidget.setObjectName("layoutWidget")
+        self.verticalLayout = QtWidgets.QVBoxLayout(self.layoutWidget)
+        self.verticalLayout.setContentsMargins(0, 0, 0, 0)
+        self.verticalLayout.setObjectName("verticalLayout")
+        self.label = QtWidgets.QLabel(self.layoutWidget)
         font = QtGui.QFont()
         font.setFamily("Calibri")
-        font.setPointSize(48)
+        font.setPointSize(36)
         self.label.setFont(font)
         self.label.setObjectName("label")
-        self.pushButton = QtWidgets.QPushButton(self.centralwidget)
-        self.pushButton.setGeometry(QtCore.QRect(340, 420, 75, 23))
+        self.verticalLayout.addWidget(self.label)
+        self.label_2 = QtWidgets.QLabel(self.layoutWidget)
+        font = QtGui.QFont()
+        font.setFamily("Calibri")
+        font.setPointSize(20)
+        self.label_2.setFont(font)
+        self.label_2.setObjectName("label_2")
+        self.verticalLayout.addWidget(self.label_2)
+        self.pushButton = QtWidgets.QPushButton(self.layoutWidget)
         self.pushButton.setObjectName("pushButton")
+        self.verticalLayout.addWidget(self.pushButton)
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(MainWindow)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 800, 21))
+        self.menubar.setGeometry(QtCore.QRect(0, 0, 800, 22))
         self.menubar.setObjectName("menubar")
         MainWindow.setMenuBar(self.menubar)
         self.statusbar = QtWidgets.QStatusBar(MainWindow)
         self.statusbar.setObjectName("statusbar")
         MainWindow.setStatusBar(self.statusbar)
+
+        # Mój kod
+
 
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
@@ -163,33 +213,14 @@ class Ui_MainWindow(object):
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "Dziennik"))
         self.label.setText(_translate("MainWindow", "Witamy w main window!"))
+        self.label_2.setText(_translate("MainWindow", "Twoja rola to:"))
         self.pushButton.setText(_translate("MainWindow", "Wyloguj się"))
 
-    def show(self):
-        global MainWindow
-        MainWindow = QtWidgets.QMainWindow()
-        ui = Ui_MainWindow()
-        ui.setupUi(MainWindow)
-        MainWindow.show()
-        try:
-            sys.exit(app.exec_())
-        except:
-            pass
 
 if __name__ == "__main__":
-    # import sys
-    # app = QtWidgets.QApplication(sys.argv)
-    # MainWindow = QtWidgets.QMainWindow()
-    # ui = Ui_MainWindow()
-    # ui.setupUi(MainWindow)
-    
-    # sys.exit(app.exec_())
-
     import sys
     app = QtWidgets.QApplication(sys.argv)
-    Form = QtWidgets.QWidget()
-    ui = LoginWindow()
-    ui.setupUi(Form)
-    Form.show()
+    login = LoginWindow()
+    main = Ui_MainWindow()
     sys.exit(app.exec_())
 
