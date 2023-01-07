@@ -51,7 +51,9 @@ class Ui_IForgot(object):
             cur.execute(query)
             result = cur.fetchone()[0]
             if result != 0:
-                query = f"UPDATE uzytkownicy SET haslo = \'{hashlib.md5(new_pass.encode('utf-8')).hexdigest()}\' WHERE reset_token = \'{token}\'" # query
+                query = f"UPDATE uzytkownicy SET haslo = \'{hashlib.md5(new_pass.encode('utf-8')).hexdigest()}\' WHERE reset_token = \'{token}\'" # zmień hasło
+                cur.execute(query)
+                query = f"UPDATE uzytkownicy SET reset_token = NULL WHERE reset_token = \'{token}\'" # usuń token po wykorzystaniu
                 cur.execute(query)
                 conn.commit()
                 self.messageBox("Reset hasła pomyślny", QtWidgets.QMessageBox.Information, "Twoje hasło zostało zresetowane.")
