@@ -87,12 +87,7 @@ class Ui_IForgot(object):
     def validateEmail(self, email):
         email_regex = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
 
-        if(len(email) == 0):
-            return False
-        elif re.fullmatch(email_regex, email):
-            return True
-        else:
-            return False
+        return (len(email) != 0 and re.fullmatch(email_regex, email))
 
     def checkEmailInDB(self, email):
         conn = None
@@ -139,7 +134,7 @@ class Ui_IForgot(object):
         receiver_email = email
         with open('base/email_pass.txt', 'r') as f:
             password = f.readline()
-        message = f"From: kogachix@gmail.com\r\nTo: {receiver_email}\r\nSubject: Twój token odzyskiwania do aplikacji Dziennik\r\n\r\nHej {receiver_email}, oto twój token do odzyskania hasła do aplikacji Dziennik: {token}\r\n".encode('utf-8')
+        message = f"From: kogachix@gmail.com\r\nTo: {receiver_email}\r\nSubject: Twój token odzyskiwania do aplikacji Dziennik\r\n\r\nHej {receiver_email}, oto twój token do odzyskania hasła do aplikacji Dziennik:\r\n {token}\r\nJeśli nie prosiłeś (-aś) o zmianę hasła, zignoruj tą wiadomość.".encode('utf-8')
 
         try:
             context = ssl.create_default_context()
