@@ -22,6 +22,11 @@ class LoginWindow(object):
         self.Form = Form
         self.setupUi(Form)
         self.Form.show()
+    
+    def clear_show(self):
+        self.lineEdit.clear()
+        self.lineEdit_2.clear()
+        self.Form.show()
         
     
     loggedSignal = QtCore.pyqtSignal()
@@ -166,6 +171,11 @@ class Ui_MainWindow(object):
         self.role = result
         self.label_2.setText(f"Twoja rola to: {self.role}")
 
+    def logout(self):
+        self.MainWindow.hide()
+        global login
+        login.clear_show()
+
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
         MainWindow.resize(800, 600)
@@ -205,6 +215,7 @@ class Ui_MainWindow(object):
 
         # Mój kod
 
+        self.pushButton.clicked.connect(self.logout)
 
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
