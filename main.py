@@ -81,23 +81,20 @@ class LoginWindow(object):
         Form.setObjectName("Form")
         Form.resize(589, 358)
         self.label_2 = QtWidgets.QLabel(Form)
-        self.label_2.setGeometry(QtCore.QRect(240, 20, 341, 61))
+        self.label_2.setGeometry(QtCore.QRect(290, -10, 301, 91))
         font = QtGui.QFont()
         font.setFamily("Calibri")
         font.setPointSize(24)
         self.label_2.setFont(font)
         self.label_2.setObjectName("label_2")
-        self.label_4 = QtWidgets.QLabel(Form)
-        self.label_4.setGeometry(QtCore.QRect(0, 70, 591, 21))
-        self.label_4.setObjectName("label_4")
         self.label = QtWidgets.QLabel(Form)
-        self.label.setGeometry(QtCore.QRect(10, 10, 71, 71))
+        self.label.setGeometry(QtCore.QRect(10, 0, 81, 81))
         self.label.setText("")
-        self.label.setPixmap(QtGui.QPixmap("ui/../login.png"))
+        self.label.setPixmap(QtGui.QPixmap(".\\ui\\../login.png"))
         self.label.setScaledContents(True)
         self.label.setObjectName("label")
         self.layoutWidget = QtWidgets.QWidget(Form)
-        self.layoutWidget.setGeometry(QtCore.QRect(170, 90, 251, 241))
+        self.layoutWidget.setGeometry(QtCore.QRect(180, 100, 251, 241))
         self.layoutWidget.setObjectName("layoutWidget")
         self.verticalLayout = QtWidgets.QVBoxLayout(self.layoutWidget)
         self.verticalLayout.setContentsMargins(0, 0, 0, 0)
@@ -121,6 +118,14 @@ class LoginWindow(object):
         self.pushButton_2 = QtWidgets.QPushButton(self.layoutWidget)
         self.pushButton_2.setObjectName("pushButton_2")
         self.verticalLayout.addWidget(self.pushButton_2)
+        self.line = QtWidgets.QFrame(Form)
+        self.line.setGeometry(QtCore.QRect(0, 80, 601, 16))
+        self.line.setFrameShape(QtWidgets.QFrame.HLine)
+        self.line.setFrameShadow(QtWidgets.QFrame.Sunken)
+        self.line.setObjectName("line")
+
+        self.retranslateUi(Form)
+        QtCore.QMetaObject.connectSlotsByName(Form)
 
         # Mój kod
 
@@ -132,9 +137,8 @@ class LoginWindow(object):
 
     def retranslateUi(self, Form):
         _translate = QtCore.QCoreApplication.translate
-        Form.setWindowTitle(_translate("Form", "Logowanie"))
+        Form.setWindowTitle(_translate("Form", "Form"))
         self.label_2.setText(_translate("Form", "Dziennik - Logowanie"))
-        self.label_4.setText(_translate("Form", "_________________________________________________________________________________________________"))
         self.label_3.setText(_translate("Form", "Adres e-mail"))
         self.label_5.setText(_translate("Form", "Hasło"))
         self.pushButton.setText(_translate("Form", "Zaloguj"))
