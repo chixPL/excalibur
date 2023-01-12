@@ -2,4 +2,4 @@
 base/
 __pycache__/
 tests/
-ui/ui*.py
+ui_*.py

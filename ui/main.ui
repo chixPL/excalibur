@@ -14,29 +14,6 @@
    <string>Dziennik</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <widget class="QLabel" name="label">
-    <property name="geometry">
-     <rect>
-      <x>10</x>
-      <y>0</y>
-      <width>51</width>
-      <height>21</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Klasa:</string>
-    </property>
-   </widget>
-   <widget class="QComboBox" name="comboBox">
-    <property name="geometry">
-     <rect>
-      <x>60</x>
-      <y>0</y>
-      <width>101</width>
-      <height>25</height>
-     </rect>
-    </property>
-   </widget>
    <widget class="QLabel" name="label_2">
     <property name="geometry">
      <rect>
@@ -47,7 +24,7 @@
      </rect>
     </property>
     <property name="text">
-     <string>Witaj, Jan Kowalski!</string>
+     <string>Witaj, username ! | Rola: role</string>
     </property>
     <property name="alignment">
      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -58,30 +35,60 @@
      <rect>
       <x>10</x>
       <y>40</y>
-      <width>761</width>
-      <height>491</height>
+      <width>781</width>
+      <height>501</height>
      </rect>
     </property>
-    <row>
-     <property name="text">
-      <string>Jan Kowalski</string>
+    <attribute name="horizontalHeaderDefaultSectionSize">
+     <number>78</number>
+    </attribute>
+    <attribute name="horizontalHeaderStretchLastSection">
+     <bool>false</bool>
+    </attribute>
+    <attribute name="verticalHeaderCascadingSectionResizes">
+     <bool>false</bool>
+    </attribute>
+    <attribute name="verticalHeaderStretchLastSection">
+     <bool>false</bool>
+    </attribute>
+   </widget>
+   <widget class="QFrame" name="frame">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>10</y>
+      <width>131</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="frameShape">
+     <enum>QFrame::StyledPanel</enum>
+    </property>
+    <property name="frameShadow">
+     <enum>QFrame::Raised</enum>
+    </property>
+    <widget class="QWidget" name="">
+     <property name="geometry">
+      <rect>
+       <x>0</x>
+       <y>0</y>
+       <width>121</width>
+       <height>22</height>
+      </rect>
      </property>
-    </row>
-    <row>
-     <property name="text">
-      <string>Adam Nowak</string>
-     </property>
-    </row>
-    <row>
-     <property name="text">
-      <string>Jan Nowak</string>
-     </property>
-    </row>
-    <column>
-     <property name="text">
-      <string>Spr1</string>
-     </property>
-    </column>
+     <layout class="QHBoxLayout" name="horizontalLayout">
+      <item>
+       <widget class="QLabel" name="label">
+        <property name="text">
+         <string>Klasa:</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QComboBox" name="comboBox"/>
+      </item>
+     </layout>
+    </widget>
    </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">
@@ -90,7 +97,7 @@
      <x>0</x>
      <y>0</y>
      <width>800</width>
-     <height>22</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuPlik">
@@ -105,17 +112,29 @@
      <string>Nauczyciel</string>
     </property>
     <addaction name="actionDodaj_sprawdzian"/>
-    <addaction name="actionDodaj_ocen"/>
-    <addaction name="actionDodaj_wiele_ocen"/>
+    <addaction name="separator"/>
+    <addaction name="actionDodaj_oceny"/>
+    <addaction name="actionDodaj_wiele_ocen_2"/>
+    <addaction name="separator"/>
+    <addaction name="actionZmie_oceny_2"/>
    </widget>
    <widget class="QMenu" name="menuAdmin">
     <property name="title">
      <string>Admin</string>
     </property>
     <addaction name="actionDodaj_u_ytkownika"/>
-    <addaction name="actionDodaj_klas"/>
+    <addaction name="actionZmie_w_a_ciwo_ci_u_ytkownika"/>
+    <addaction name="separator"/>
+    <addaction name="actionDodaj_klas_2"/>
+    <addaction name="actionZmie_w_a_ciwo_ci_klasy"/>
+   </widget>
+   <widget class="QMenu" name="menuUcze">
+    <property name="title">
+     <string>Uczeń</string>
+    </property>
    </widget>
    <addaction name="menuPlik"/>
+   <addaction name="menuUcze"/>
    <addaction name="menuNauczyciel"/>
    <addaction name="menuAdmin"/>
   </widget>
@@ -156,6 +175,41 @@
   <action name="actionDodaj_wiele_ocen">
    <property name="text">
     <string>Dodaj wiele ocen</string>
+   </property>
+  </action>
+  <action name="actionZmie_oceny">
+   <property name="text">
+    <string>Zmień oceny</string>
+   </property>
+  </action>
+  <action name="actionDodaj_oceny">
+   <property name="text">
+    <string>Dodaj ocenę</string>
+   </property>
+  </action>
+  <action name="actionDodaj_wiele_ocen_2">
+   <property name="text">
+    <string>Dodaj wiele ocen</string>
+   </property>
+  </action>
+  <action name="actionZmie_oceny_2">
+   <property name="text">
+    <string>Zmień oceny</string>
+   </property>
+  </action>
+  <action name="actionZmie_w_a_ciwo_ci_u_ytkownika">
+   <property name="text">
+    <string>Zmień właściwości użytkownika</string>
+   </property>
+  </action>
+  <action name="actionDodaj_klas_2">
+   <property name="text">
+    <string>Dodaj klasę</string>
+   </property>
+  </action>
+  <action name="actionZmie_w_a_ciwo_ci_klasy">
+   <property name="text">
+    <string>Zmień właściwości klasy</string>
    </property>
   </action>
  </widget>
