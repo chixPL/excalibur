@@ -137,7 +137,7 @@ class LoginWindow(object):
 
     def retranslateUi(self, Form):
         _translate = QtCore.QCoreApplication.translate
-        Form.setWindowTitle(_translate("Form", "Form"))
+        Form.setWindowTitle(_translate("Form", "Logowanie"))
         self.label_2.setText(_translate("Form", "Dziennik - Logowanie"))
         self.label_3.setText(_translate("Form", "Adres e-mail"))
         self.label_5.setText(_translate("Form", "Hasło"))
