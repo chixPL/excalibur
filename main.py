@@ -73,7 +73,7 @@ class LoginWindow(object):
                 self.messageBox("Logowanie powiodło się!", QtWidgets.QMessageBox.Information, "Zostałeś zalogowany.")
                 self.Form.close()
                 global main
-                main.show(email)
+                main.show(email) # pokaż MainWindow, przekaż adres email
             else:
                 self.messageBox("Logowanie nie powiodło się", QtWidgets.QMessageBox.Warning, "Adres e-mail lub hasło jest nieprawidłowe.")
     
@@ -114,6 +114,7 @@ class LoginWindow(object):
         self.verticalLayout.addWidget(self.lineEdit_2)
         self.pushButton = QtWidgets.QPushButton(self.layoutWidget)
         self.pushButton.setObjectName("pushButton")
+        self.pushButton.setShortcut("")
         self.verticalLayout.addWidget(self.pushButton)
         self.pushButton_2 = QtWidgets.QPushButton(self.layoutWidget)
         self.pushButton_2.setObjectName("pushButton_2")
@@ -131,8 +132,7 @@ class LoginWindow(object):
 
         self.pushButton.clicked.connect(self.login)
         self.pushButton_2.clicked.connect(Ui_IForgot)
-
-        self.retranslateUi(Form)
+        
         QtCore.QMetaObject.connectSlotsByName(Form)
 
     def retranslateUi(self, Form):
@@ -142,6 +142,7 @@ class LoginWindow(object):
         self.label_3.setText(_translate("Form", "Adres e-mail"))
         self.label_5.setText(_translate("Form", "Hasło"))
         self.pushButton.setText(_translate("Form", "Zaloguj"))
+        self.pushButton.setShortcut(_translate("Form", "Return"))
         self.pushButton_2.setText(_translate("Form", "Zapomniałeś hasła?"))
 
 class Ui_MainWindow(object):
@@ -158,8 +159,8 @@ class Ui_MainWindow(object):
         self.db.setPassword(self.params['password'])
     
     def show(self, email):
-        self.MainWindow.show()
-        self.getUserInfo(email)
+        self.MainWindow.show() # startuj UI
+        self.getUserInfo(email) # startuj kod
 
     def getUserInfo(self, email):
         conn = None
@@ -200,7 +201,7 @@ class Ui_MainWindow(object):
         for i in results:
             self.comboBox.addItem(i[0])
 
-    def getClassData(self):
+    def showData(self):
         self.tableWidget.clear()
         status = self.db.open()
         if status == False:
@@ -219,32 +220,45 @@ class Ui_MainWindow(object):
                 cur.execute(query)
                 class_id = cur.fetchone()[0]
 
-                query = f"SELECT skrot_sprawdzianu FROM sprawdziany INNER JOIN przedmioty ON sprawdziany.id_przedmiotu=przedmioty.id_przedmiotu WHERE sprawdziany.id_przedmiotu = {class_id}" # pobierz nazwy sprawdzianów
+                query = f"SELECT id_uzytkownika FROM uzytkownicy_przedmioty WHERE id_przedmiotu = {class_id}" # pobierz ID uczniów którzy się uczą w danej klasie
                 cur.execute(query)
-                cols_name = cur.fetchall()
+                user_ids = cur.fetchall()
 
                 query = f"SELECT CONCAT_WS(' ', imie, nazwisko)  FROM uzytkownicy_przedmioty INNER JOIN uzytkownicy ON uzytkownicy_przedmioty.id_uzytkownika = uzytkownicy.id_uzytkownika WHERE uzytkownicy_przedmioty.id_przedmiotu = {class_id}" # pobierz nazwy uczniów
                 cur.execute(query)
-                rows_name = cur.fetchall()
+                user_names = cur.fetchall()
+
+                query = f"SELECT skrot_sprawdzianu FROM sprawdziany INNER JOIN przedmioty ON sprawdziany.id_przedmiotu=przedmioty.id_przedmiotu WHERE sprawdziany.id_przedmiotu = {class_id}" # pobierz nazwy sprawdzianów
+                cur.execute(query)
+                test_names = cur.fetchall()
+
+                test_names = [x[0] for x in test_names] # usuwamy tuple
+                user_names = [x[0] for x in user_names]
+
+                self.tableWidget.setColumnCount(len(test_names))
+                self.tableWidget.setRowCount(len(user_names))
+                self.tableWidget.setHorizontalHeaderLabels(test_names)
+                self.tableWidget.setVerticalHeaderLabels(user_names)
+
+                for i in range(0, len(test_names)):
+                    for j in range(0, len(user_ids)):
+                        query = f"SELECT ocena FROM oceny WHERE id_ucznia = {user_ids[j][0]} AND id_sprawdzianu = {i+1}" # pobierz nazwy sprawdzianów
+                        # todo: refactor tego do czegoś bardziej optymalnego, bo wywołujemy SELECTa dla każdej oceny, na razie to działa ale jest lepszy sposób
+                        try:
+                            cur.execute(query)
+                            res = cur.fetchone()[0]   
+                            self.tableWidget.setItem(j, i, QTableWidgetItem(res))
+                        except TypeError:
+                            self.tableWidget.setItem(j, i, QTableWidgetItem("")) # nie brał udziału w sprawdzianie
+            
             except (Exception, psycopg2.DatabaseError) as err:
                 print(f"Błąd połączenia z bazą: {err}")
                 return False
+
             finally:
                 if conn is not None:
                     conn.close()                        # zamknięcie konektora do bazy
 
-            self.tableWidget.setColumnCount(len(cols_name))
-            row = 0
-            sql = f"SELECT ocena FROM oceny INNER JOIN sprawdziany ON sprawdziany.id_sprawdzianu = oceny.id_sprawdzianu WHERE id_przedmiotu = {class_id}"
-            query = QtSql.QSqlQuery(sql)
-            while query.next():
-                self.tableWidget.insertRow(row)
-                self.tableWidget.setRowCount(row+1)
-                for i in range(0, len(rows_name)):
-                    self.tableWidget.setItem(row, i, QtWidgets.QTableWidgetItem(str(query.value(i))))
-                row = row + 1
-            self.tableWidget.setHorizontalHeaderLabels([x[0] for x in cols_name])
-            self.tableWidget.setVerticalHeaderLabels([x[0] for x in rows_name])
 
     def logout(self):
         self.MainWindow.hide()
@@ -352,7 +366,7 @@ class Ui_MainWindow(object):
 
         self.actionWyloguj_si.triggered.connect(self.logout)
         self.actionZamknij_program.triggered.connect(app.closeAllWindows)
-        self.comboBox.currentTextChanged.connect(self.getClassData)
+        self.comboBox.currentTextChanged.connect(self.showData)
 
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
