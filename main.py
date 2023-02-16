@@ -176,10 +176,20 @@ class Ui_MainWindow(object):
         finally:
             if conn is not None:
                 conn.close()                        # zamknięcie konektora do bazy
+        # informacje o użytkowniku
         self.user_id = result[0]
         self.user_name = result[1]
         self.user_surname = result[2]
         self.user_role = result[3]
+
+        # odpowiednie menu według roli
+        if(self.user_role == 'Uczeń'):
+            self.menuNauczyciel.menuAction().setVisible(False)
+            self.menuAdmin.menuAction().setVisible(False)
+        elif(self.user_role == 'Nauczyciel'):
+            self.menuAdmin.menuAction().setVisible(False)
+            self.menuUcze.menuAction().setVisible(False)
+        
         self.label_2.setText(f"Witaj, {self.user_name} {self.user_surname} | Rola: {self.user_role}")
         self.getClasses()
 
