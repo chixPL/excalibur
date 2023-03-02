@@ -151,12 +151,7 @@ class Ui_MainWindow(object):
         MainWindow = QtWidgets.QMainWindow()
         self.MainWindow = MainWindow
         self.setupUi(MainWindow)
-        self.db = QtSql.QSqlDatabase.addDatabase('QPSQL')
         self.params = config()
-        self.db.setHostName(self.params['host'])
-        self.db.setDatabaseName(self.params['database'])
-        self.db.setUserName(self.params['user'])
-        self.db.setPassword(self.params['password'])
     
     def show(self, email):
         self.MainWindow.show() # startuj UI
@@ -213,61 +208,62 @@ class Ui_MainWindow(object):
 
     def showData(self):
         self.tableWidget.clear()
-        status = self.db.open()
-        if status == False:
-            pass
-        else:
-            class_shortcut = self.comboBox.currentText()
-            # Pobierz nazwy sprawdzianów i uczniów
-            conn = None
-            try:
-                conn = psycopg2.connect(**self.params)       # łączenie z bazą
-                cur = conn.cursor()                     # tworzenie kursora do bazy
 
-                #todo: refactor do executemany(), na razie zostaje w ten sposób dla przejrzystości
+        class_shortcut = self.comboBox.currentText()
+        # Pobierz nazwy sprawdzianów i uczniów
+        conn = None
+        try:
+            conn = psycopg2.connect(**self.params)       # łączenie z bazą
+            cur = conn.cursor()                     # tworzenie kursora do bazy
 
-                query = f"SELECT id_przedmiotu FROM przedmioty WHERE skrot_przedmiotu = \'{class_shortcut}\'" # pobierz ID klasy
-                cur.execute(query)
-                class_id = cur.fetchone()[0]
+            #todo: refactor do executemany(), na razie zostaje w ten sposób dla przejrzystości
 
-                query = f"SELECT id_uzytkownika FROM uzytkownicy_przedmioty WHERE id_przedmiotu = {class_id}" # pobierz ID uczniów którzy się uczą w danej klasie
-                cur.execute(query)
-                user_ids = cur.fetchall()
+            query = f"SELECT id_przedmiotu FROM przedmioty WHERE skrot_przedmiotu = \'{class_shortcut}\'" # pobierz ID klasy
+            cur.execute(query)
+            class_id = cur.fetchone()[0]
 
-                query = f"SELECT CONCAT_WS(' ', imie, nazwisko)  FROM uzytkownicy_przedmioty INNER JOIN uzytkownicy ON uzytkownicy_przedmioty.id_uzytkownika = uzytkownicy.id_uzytkownika WHERE uzytkownicy_przedmioty.id_przedmiotu = {class_id}" # pobierz nazwy uczniów
-                cur.execute(query)
-                user_names = cur.fetchall()
+            query = f"SELECT id_uzytkownika FROM uzytkownicy_przedmioty WHERE id_przedmiotu = {class_id}" # pobierz ID uczniów którzy się uczą w danej klasie
+            cur.execute(query)
+            user_ids = cur.fetchall()
 
-                query = f"SELECT skrot_sprawdzianu FROM sprawdziany INNER JOIN przedmioty ON sprawdziany.id_przedmiotu=przedmioty.id_przedmiotu WHERE sprawdziany.id_przedmiotu = {class_id}" # pobierz nazwy sprawdzianów
-                cur.execute(query)
-                test_names = cur.fetchall()
+            query = f"SELECT CONCAT_WS(' ', imie, nazwisko)  FROM uzytkownicy_przedmioty INNER JOIN uzytkownicy ON uzytkownicy_przedmioty.id_uzytkownika = uzytkownicy.id_uzytkownika WHERE uzytkownicy_przedmioty.id_przedmiotu = {class_id}" # pobierz nazwy uczniów
+            cur.execute(query)
+            user_names = cur.fetchall()
 
-                test_names = [x[0] for x in test_names] # usuwamy tuple
-                user_names = [x[0] for x in user_names]
+            query = f"SELECT skrot_sprawdzianu FROM sprawdziany INNER JOIN przedmioty ON sprawdziany.id_przedmiotu=przedmioty.id_przedmiotu WHERE sprawdziany.id_przedmiotu = {class_id}" # pobierz nazwy sprawdzianów
+            cur.execute(query)
+            test_names = cur.fetchall()
 
-                self.tableWidget.setColumnCount(len(test_names))
-                self.tableWidget.setRowCount(len(user_names))
-                self.tableWidget.setHorizontalHeaderLabels(test_names)
-                self.tableWidget.setVerticalHeaderLabels(user_names)
+            test_names = [x[0] for x in test_names] # usuwamy tuple
+            user_names = [x[0] for x in user_names]
 
-                for i in range(0, len(test_names)):
-                    for j in range(0, len(user_ids)):
-                        query = f"SELECT ocena FROM oceny WHERE id_ucznia = {user_ids[j][0]} AND id_sprawdzianu = {i+1}" # pobierz nazwy sprawdzianów
-                        # todo: refactor tego do czegoś bardziej optymalnego, bo wywołujemy SELECTa dla każdej oceny, na razie to działa ale jest lepszy sposób
-                        try:
-                            cur.execute(query)
-                            res = cur.fetchone()[0]   
-                            self.tableWidget.setItem(j, i, QTableWidgetItem(res))
-                        except TypeError:
-                            self.tableWidget.setItem(j, i, QTableWidgetItem("")) # nie brał udziału w sprawdzianie
-            
-            except (Exception, psycopg2.DatabaseError) as err:
-                print(f"Błąd połączenia z bazą: {err}")
-                return False
+            self.tableWidget.setColumnCount(len(test_names))
+            self.tableWidget.setRowCount(len(user_names))
+            self.tableWidget.setHorizontalHeaderLabels(test_names)
+            self.tableWidget.setVerticalHeaderLabels(user_names)
 
-            finally:
-                if conn is not None:
-                    conn.close()                        # zamknięcie konektora do bazy
+            for i in range(0, len(user_ids)):
+                query = f"SELECT ocena FROM oceny WHERE id_ucznia = {user_ids[i][0]}" # pobierz nazwy sprawdzianów dla każdego ucznia
+                try:
+                    cur.execute(query)
+                    res = [x[0] for x in cur.fetchall()]
+
+                    # wstawiaj kolumnami
+                    for j in range(0, len(test_names)):
+                        if res[j] is not None:
+                            self.tableWidget.setItem(i, j, QTableWidgetItem(res[j]))
+
+                except (Exception, psycopg2.DatabaseError) as err:
+                    print(f"Błąd połączenia z bazą: {err}")
+                    return False
+        
+        except (Exception, psycopg2.DatabaseError) as err:
+            print(f"Błąd połączenia z bazą: {err}")
+            return False
+
+        finally:
+            if conn is not None:
+                conn.close()                        # zamknięcie konektora do bazy
 
 
     def logout(self):
@@ -405,6 +401,7 @@ class Ui_MainWindow(object):
         self.actionZmie_w_a_ciwo_ci_u_ytkownika.setText(_translate("MainWindow", "Zmień właściwości użytkownika"))
         self.actionDodaj_klas_2.setText(_translate("MainWindow", "Dodaj klasę"))
         self.actionZmie_w_a_ciwo_ci_klasy.setText(_translate("MainWindow", "Zmień właściwości klasy"))
+
 
 
 if __name__ == "__main__":
