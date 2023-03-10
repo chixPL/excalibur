@@ -268,11 +268,10 @@ class Ui_MainWindow(object):
             if conn is not None:
                 conn.close()                        # zamknięcie konektora do bazy
 
-    def addNote(self, class_shortcut):
+    def addNote(self):
+        class_shortcut = self.comboBox.currentText()
         Dialog = QtWidgets.QDialog()
-        ui = Ui_AddNote(self.comboBox.currentText())
-        ui.setupUi(Dialog)
-        Dialog.show()
+        ui = Ui_AddNote(class_shortcut)
 
     def logout(self):
         self.MainWindow.hide()
@@ -390,7 +389,6 @@ class Ui_MainWindow(object):
         self.comboBox.currentTextChanged.connect(self.showData)
         self.pushButton.clicked.connect(self.addNote)
         self.actionDodaj_ocen.triggered.connect(self.addNote)
-
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
