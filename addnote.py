@@ -17,9 +17,8 @@ class Ui_AddNote(object):
     def __init__(self, class_shortcut):
         self.class_shortcut = class_shortcut
         self.params = config()
-        Dialog = QtWidgets.QDialog()
-        self.Dialog = Dialog
-        self.setupUi(Dialog)
+        self.Dialog = QtWidgets.QDialog()
+        self.setupUi(self.Dialog)
         self.Dialog.show()
         self.Dialog.exec()
 

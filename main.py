@@ -270,7 +270,6 @@ class Ui_MainWindow(object):
 
     def addNote(self):
         class_shortcut = self.comboBox.currentText()
-        Dialog = QtWidgets.QDialog()
         ui = Ui_AddNote(class_shortcut)
 
     def logout(self):
@@ -388,7 +387,8 @@ class Ui_MainWindow(object):
         self.actionZamknij_program.triggered.connect(app.closeAllWindows)
         self.comboBox.currentTextChanged.connect(self.showData)
         self.pushButton.clicked.connect(self.addNote)
-        self.actionDodaj_ocen.triggered.connect(self.addNote)
+        self.actionDodaj_oceny.triggered.connect(self.addNote)
+        
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
