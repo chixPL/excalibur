@@ -238,6 +238,7 @@ class Ui_MainWindow(object):
             test_names = cur.fetchall()
 
             test_names = [x[0] for x in test_names] # usuwamy tuple
+            test_names.append('Średnia') # na koniec dodajemy średnią
             user_names = [x[0] for x in user_names]
 
             self.tableWidget.setColumnCount(len(test_names))
@@ -246,17 +247,24 @@ class Ui_MainWindow(object):
             self.tableWidget.setVerticalHeaderLabels(user_names)
 
             for i in range(0, len(user_ids)):
-                query = f"SELECT ocena FROM oceny WHERE id_ucznia = {user_ids[i][0]}" # pobierz nazwy sprawdzianów dla każdego ucznia
+                query = f"SELECT ocena FROM oceny WHERE id_ucznia = {user_ids[i][0]}"
                 cur.execute(query)
                 res = [x[0] for x in cur.fetchall()]
-
                 # wstawiaj kolumnami
                 try:
-                    for j in range(0, len(test_names)):
+                    for j in range(0, len(test_names)-1):
                         if res[j] is not None:
                             self.tableWidget.setItem(i, j, QTableWidgetItem(res[j]))
                 except IndexError:
                     pass # todo: usunąć te NULL, jeśli nie wstawiamy wsadowo to nie może ich tutaj być bo będzie kłopot z tym
+                query = f"SELECT ROUND(AVG(CAST(LEFT(ocena, 1) AS INT)),2) FROM oceny JOIN sprawdziany ON oceny.id_sprawdzianu = sprawdziany.id_sprawdzianu WHERE id_przedmiotu = {class_id} AND id_ucznia = {user_ids[i][0]}" # pobierz średnią ucznia
+                # LEFT bierze pierwszy znak (w średniej plusy/minusy pomijamy) a CAST zmienia varchary na inty
+                
+                cur.execute(query)
+                srednia = cur.fetchone()[0]
+                if srednia is not None:
+                    self.tableWidget.setItem(i, len(test_names)-1, QTableWidgetItem(str(srednia)))
+
             self.tableWidget.repaint()
             self.tableWidget.update()
         
