@@ -52,73 +52,102 @@ class Ui_AddUser(object):
 
         email_regex = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
 
-        email = self.lineEdit.text()
-        haslo = self.lineEdit_2.text()
+        imie = self.lineEdit.text()
+        nazwisko = self.lineEdit_2.text()
+        email = self.lineEdit_3.text()
+        haslo = self.lineEdit_4.text()
         rola = self.comboBox.currentText()
-        if not re.fullmatch(email_regex, email):
+
+        if '' in [imie, nazwisko, email, haslo, rola]: # jeśli którekolwiek pole jest puste
+            self.messageBox("Błąd", QtWidgets.QMessageBox.Critical, "Puste pola", "Wypełnij wszystkie pola")
+        elif not re.fullmatch(email_regex, email):
             self.messageBox("Błąd", QtWidgets.QMessageBox.Critical, "Nieprawidłowy adres e-mail", "Wpisz poprawny adres e-mail")
             return
         elif self.checkIfEmailExists(email):
             self.messageBox("Błąd", QtWidgets.QMessageBox.Critical, "Adres e-mail jest już zajęty", "Użytkownik o podanym adresie e-mail już istnieje")
         else:
-            print(f"Email: {email} | Hasło (plaintext): {haslo} | Hasło (MD5): {hashlib.md5(haslo.encode('utf-8')).hexdigest()} | Rola: {rola}")
-            self.messageBox("Sukces", QtWidgets.QMessageBox.Information, "Dodano użytkownika", "Użytkownik został pomyślnie dodany do bazy danych.")
+            try:
+                params = config()                       # wczytujemy paramtery połaczenia z bazą
+                conn = psycopg2.connect(**params)       # łączenie z bazą
+                cur = conn.cursor()                     # tworzenie kursora do bazy
+                query = f"INSERT INTO uzytkownicy(email, haslo, rola, imie, nazwisko) VALUES(\'{email}\', \'{haslo}\', \'{rola}\', \'{imie}\', \'{nazwisko}\')" # query
+                cur.execute(query)
+                conn.commit()
+                self.messageBox("Sukces", QtWidgets.QMessageBox.Information, "Dodano użytkownika", "Użytkownik został pomyślnie dodany do bazy danych.")
+
+            except (Exception, psycopg2.DatabaseError) as err:
+                print(f"Błąd połączenia z bazą: {err}")
+                return False
+            finally:
+                if conn is not None:
+                    conn.close()                        # zamknięcie konektora do bazy
 
 
     def setupUi(self, Dialog):
         Dialog.setObjectName("Dialog")
-        Dialog.resize(460, 326)
+        Dialog.resize(472, 465)
         self.label = QtWidgets.QLabel(Dialog)
         self.label.setGeometry(QtCore.QRect(80, 10, 301, 31))
         font = QtGui.QFont()
         font.setPointSize(20)
         self.label.setFont(font)
         self.label.setObjectName("label")
-        self.layoutWidget = QtWidgets.QWidget(Dialog)
-        self.layoutWidget.setGeometry(QtCore.QRect(10, 50, 441, 261))
-        self.layoutWidget.setObjectName("layoutWidget")
-        self.verticalLayout_2 = QtWidgets.QVBoxLayout(self.layoutWidget)
-        self.verticalLayout_2.setContentsMargins(0, 0, 0, 0)
-        self.verticalLayout_2.setObjectName("verticalLayout_2")
-        self.verticalLayout = QtWidgets.QVBoxLayout()
+        self.widget = QtWidgets.QWidget(Dialog)
+        self.widget.setGeometry(QtCore.QRect(10, 50, 451, 391))
+        self.widget.setObjectName("widget")
+        self.verticalLayout = QtWidgets.QVBoxLayout(self.widget)
+        self.verticalLayout.setContentsMargins(0, 0, 0, 0)
         self.verticalLayout.setObjectName("verticalLayout")
-        self.label_2 = QtWidgets.QLabel(self.layoutWidget)
-        self.label_2.setObjectName("label_2")
-        self.verticalLayout.addWidget(self.label_2)
-        self.lineEdit = QtWidgets.QLineEdit(self.layoutWidget)
+        self.label_5 = QtWidgets.QLabel(self.widget)
+        self.label_5.setObjectName("label_5")
+        self.verticalLayout.addWidget(self.label_5)
+        self.lineEdit = QtWidgets.QLineEdit(self.widget)
         self.lineEdit.setObjectName("lineEdit")
         self.verticalLayout.addWidget(self.lineEdit)
-        self.label_3 = QtWidgets.QLabel(self.layoutWidget)
-        self.label_3.setObjectName("label_3")
-        self.verticalLayout.addWidget(self.label_3)
-        self.lineEdit_2 = QtWidgets.QLineEdit(self.layoutWidget)
-        self.lineEdit_2.setEchoMode(QtWidgets.QLineEdit.Password)
+        self.label_6 = QtWidgets.QLabel(self.widget)
+        self.label_6.setObjectName("label_6")
+        self.verticalLayout.addWidget(self.label_6)
+        self.lineEdit_2 = QtWidgets.QLineEdit(self.widget)
         self.lineEdit_2.setObjectName("lineEdit_2")
         self.verticalLayout.addWidget(self.lineEdit_2)
-        self.label_4 = QtWidgets.QLabel(self.layoutWidget)
+        self.label_2 = QtWidgets.QLabel(self.widget)
+        self.label_2.setObjectName("label_2")
+        self.verticalLayout.addWidget(self.label_2)
+        self.lineEdit_3 = QtWidgets.QLineEdit(self.widget)
+        self.lineEdit_3.setObjectName("lineEdit_3")
+        self.verticalLayout.addWidget(self.lineEdit_3)
+        self.label_3 = QtWidgets.QLabel(self.widget)
+        self.label_3.setObjectName("label_3")
+        self.verticalLayout.addWidget(self.label_3)
+        self.lineEdit_4 = QtWidgets.QLineEdit(self.widget)
+        self.lineEdit_4.setEchoMode(QtWidgets.QLineEdit.Password)
+        self.lineEdit_4.setObjectName("lineEdit_4")
+        self.verticalLayout.addWidget(self.lineEdit_4)
+        self.label_4 = QtWidgets.QLabel(self.widget)
         self.label_4.setObjectName("label_4")
         self.verticalLayout.addWidget(self.label_4)
-        self.comboBox = QtWidgets.QComboBox(self.layoutWidget)
+        self.comboBox = QtWidgets.QComboBox(self.widget)
         self.comboBox.setObjectName("comboBox")
         self.comboBox.addItem("")
         self.comboBox.addItem("")
         self.comboBox.addItem("")
         self.verticalLayout.addWidget(self.comboBox)
-        self.verticalLayout_2.addLayout(self.verticalLayout)
-        self.pushButton = QtWidgets.QPushButton(self.layoutWidget)
+        self.pushButton = QtWidgets.QPushButton(self.widget)
         self.pushButton.setObjectName("pushButton")
-        self.verticalLayout_2.addWidget(self.pushButton)
+        self.verticalLayout.addWidget(self.pushButton)
 
         # Mój kod
 
         self.pushButton.clicked.connect(self.addUserFunction)
         self.retranslateUi(Dialog)
         QtCore.QMetaObject.connectSlotsByName(Dialog)
-
+        
     def retranslateUi(self, Dialog):
         _translate = QtCore.QCoreApplication.translate
         Dialog.setWindowTitle(_translate("Dialog", "Dodawanie użytkownika"))
         self.label.setText(_translate("Dialog", "Dodawanie użytkownika"))
+        self.label_5.setText(_translate("Dialog", "Imię"))
+        self.label_6.setText(_translate("Dialog", "Nazwisko"))
         self.label_2.setText(_translate("Dialog", "E-mail"))
         self.label_3.setText(_translate("Dialog", "Hasło"))
         self.label_4.setText(_translate("Dialog", "Rola"))
