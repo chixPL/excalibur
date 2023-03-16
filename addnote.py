@@ -15,6 +15,7 @@ from config import config
 class Ui_AddNote(object):
 
     def __init__(self, class_shortcut):
+        self.refresh = False
         self.class_shortcut = class_shortcut
         self.params = config()
         self.Dialog = QtWidgets.QDialog()
@@ -62,25 +63,50 @@ class Ui_AddNote(object):
         test_name = self.comboBox.currentText()
         student_name = self.comboBox_2.currentText()
         grade = self.comboBox_3.currentText()
+        value = self.comboBox_4.currentText()
+        # Add the results to the database
+        try:
+            conn = psycopg2.connect(**self.params)
+            cur = conn.cursor()                     # tworzenie kursora do bazy
+            # Get id of the test
+            query = f"SELECT id_sprawdzianu FROM sprawdziany WHERE skrot_sprawdzianu = \'{test_name}\'"
+            cur.execute(query)
+            test_id = cur.fetchone()[0]
+            # Get id of the student
+            query = f"SELECT id_uzytkownika FROM uzytkownicy WHERE CONCAT_WS(' ', imie, nazwisko) = \'{student_name}\'"
+            cur.execute(query)
+            student_id = cur.fetchone()[0]
 
-        print(test_name, " | ", student_name, " : ", grade)
+            query = f"INSERT INTO oceny(id_ucznia, id_sprawdzianu, ocena, wartosc) VALUES({student_id}, {test_id}, \'{grade}\', \'{value}\')"
+            cur.execute(query)
+            conn.commit()
+            self.refresh = True
+            #self.Dialog.close() # zamknij okno
+        except (Exception, psycopg2.DatabaseError) as err:
+            print(f"Błąd połączenia z bazą: {err}")
+            return False
+        finally:
+            if conn is not None:
+                conn.close()                        # zamknięcie konektora do bazy
+
 
     def setupUi(self, Dialog):
         Dialog.setObjectName("Dialog")
-        Dialog.resize(459, 326)
+        Dialog.resize(460, 326)
         self.label = QtWidgets.QLabel(Dialog)
         self.label.setGeometry(QtCore.QRect(120, 10, 221, 31))
         font = QtGui.QFont()
         font.setPointSize(20)
         self.label.setFont(font)
         self.label.setObjectName("label")
+        self.label_5 = QtWidgets.QLabel(Dialog)
+        self.label_5.setGeometry(QtCore.QRect(20, 290, 401, 17))
+        self.label_5.setObjectName("label_5")
         self.layoutWidget = QtWidgets.QWidget(Dialog)
-        self.layoutWidget.setGeometry(QtCore.QRect(30, 60, 401, 211))
+        self.layoutWidget.setGeometry(QtCore.QRect(6, 62, 441, 191))
         self.layoutWidget.setObjectName("layoutWidget")
-        self.verticalLayout = QtWidgets.QVBoxLayout(self.layoutWidget)
-        self.verticalLayout.setContentsMargins(0, 0, 0, 0)
-        self.verticalLayout.setObjectName("verticalLayout")
-        self.gridLayout = QtWidgets.QGridLayout()
+        self.gridLayout = QtWidgets.QGridLayout(self.layoutWidget)
+        self.gridLayout.setContentsMargins(0, 0, 0, 0)
         self.gridLayout.setObjectName("gridLayout")
         self.label_2 = QtWidgets.QLabel(self.layoutWidget)
         self.label_2.setObjectName("label_2")
@@ -116,13 +142,19 @@ class Ui_AddNote(object):
         self.comboBox_3.addItem("")
         self.comboBox_3.addItem("")
         self.gridLayout.addWidget(self.comboBox_3, 2, 1, 1, 1)
-        self.verticalLayout.addLayout(self.gridLayout)
+        self.label_6 = QtWidgets.QLabel(self.layoutWidget)
+        self.label_6.setObjectName("label_6")
+        self.gridLayout.addWidget(self.label_6, 3, 0, 1, 1)
+        self.comboBox_4 = QtWidgets.QComboBox(self.layoutWidget)
+        self.comboBox_4.setObjectName("comboBox_4")
+        self.comboBox_4.addItem("")
+        self.comboBox_4.addItem("")
+        self.comboBox_4.addItem("")
+        self.gridLayout.addWidget(self.comboBox_4, 3, 1, 1, 1)
         self.pushButton = QtWidgets.QPushButton(self.layoutWidget)
         self.pushButton.setObjectName("pushButton")
-        self.verticalLayout.addWidget(self.pushButton)
-        self.label_5 = QtWidgets.QLabel(Dialog)
-        self.label_5.setGeometry(QtCore.QRect(30, 290, 401, 17))
-        self.label_5.setObjectName("label_5")
+        self.gridLayout.addWidget(self.pushButton, 4, 0, 1, 2)
+
 
         # Mój kod
 
@@ -155,4 +187,9 @@ class Ui_AddNote(object):
         self.comboBox_3.setItemText(13, _translate("Dialog", "5+"))
         self.comboBox_3.setItemText(14, _translate("Dialog", "6-"))
         self.comboBox_3.setItemText(15, _translate("Dialog", "6"))
+        self.label_6.setText(_translate("Dialog", "Wartość oceny"))
+        self.comboBox_4.setItemText(0, _translate("Dialog", "Zwykła"))
+        self.comboBox_4.setItemText(1, _translate("Dialog", "Semestralna"))
+        self.comboBox_4.setItemText(2, _translate("Dialog", "Końcowa"))
         self.pushButton.setText(_translate("Dialog", "Dodaj ocenę"))
+

@@ -247,18 +247,18 @@ class Ui_MainWindow(object):
 
             for i in range(0, len(user_ids)):
                 query = f"SELECT ocena FROM oceny WHERE id_ucznia = {user_ids[i][0]}" # pobierz nazwy sprawdzianów dla każdego ucznia
-                try:
-                    cur.execute(query)
-                    res = [x[0] for x in cur.fetchall()]
+                cur.execute(query)
+                res = [x[0] for x in cur.fetchall()]
 
-                    # wstawiaj kolumnami
+                # wstawiaj kolumnami
+                try:
                     for j in range(0, len(test_names)):
                         if res[j] is not None:
                             self.tableWidget.setItem(i, j, QTableWidgetItem(res[j]))
-
-                except (Exception, psycopg2.DatabaseError) as err:
-                    print(f"Błąd połączenia z bazą: {err}")
-                    return False
+                except IndexError:
+                    pass # todo: usunąć te NULL, jeśli nie wstawiamy wsadowo to nie może ich tutaj być bo będzie kłopot z tym
+            self.tableWidget.repaint()
+            self.tableWidget.update()
         
         except (Exception, psycopg2.DatabaseError) as err:
             print(f"Błąd połączenia z bazą: {err}")
@@ -271,6 +271,11 @@ class Ui_MainWindow(object):
     def addNote(self):
         class_shortcut = self.comboBox.currentText()
         ui = Ui_AddNote(class_shortcut)
+        if(ui.refresh == True):
+            # todo: (?) ustawić repaint kiedy widżet nadal jest aktywny, obecnie dopiero po zamknięciu się odświeża
+            self.showData()
+            ui.refresh = False
+            
 
     def logout(self):
         self.MainWindow.hide()
