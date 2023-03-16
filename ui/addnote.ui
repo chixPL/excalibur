@@ -10,8 +10,11 @@
     <height>326</height>
    </rect>
   </property>
+  <property name="acceptDrops">
+   <bool>false</bool>
+  </property>
   <property name="windowTitle">
-   <string>Dialog</string>
+   <string>Dodawanie oceny</string>
   </property>
   <widget class="QLabel" name="label">
    <property name="geometry">

@@ -18,6 +18,7 @@ from PyQt5.QtWidgets import QTableWidgetItem
 from config import config
 from iforgot import Ui_IForgot
 from addnote import Ui_AddNote
+from adduser import Ui_AddUser
 
 class LoginWindow(object):
 
@@ -82,18 +83,18 @@ class LoginWindow(object):
     
     def setupUi(self, Form):
         Form.setObjectName("Form")
-        Form.resize(589, 358)
+        Form.resize(582, 358)
         self.label_2 = QtWidgets.QLabel(Form)
-        self.label_2.setGeometry(QtCore.QRect(290, -10, 301, 91))
+        self.label_2.setGeometry(QtCore.QRect(270, 0, 311, 91))
         font = QtGui.QFont()
-        font.setFamily("Calibri")
+        font.setFamily("Ubuntu")
         font.setPointSize(24)
         self.label_2.setFont(font)
         self.label_2.setObjectName("label_2")
         self.label = QtWidgets.QLabel(Form)
         self.label.setGeometry(QtCore.QRect(10, 0, 81, 81))
         self.label.setText("")
-        self.label.setPixmap(QtGui.QPixmap("./login.png"))
+        self.label.setPixmap(QtGui.QPixmap("ui/../login.png"))
         self.label.setScaledContents(True)
         self.label.setObjectName("label")
         self.layoutWidget = QtWidgets.QWidget(Form)
@@ -117,7 +118,6 @@ class LoginWindow(object):
         self.verticalLayout.addWidget(self.lineEdit_2)
         self.pushButton = QtWidgets.QPushButton(self.layoutWidget)
         self.pushButton.setObjectName("pushButton")
-        self.pushButton.setShortcut("")
         self.verticalLayout.addWidget(self.pushButton)
         self.pushButton_2 = QtWidgets.QPushButton(self.layoutWidget)
         self.pushButton_2.setObjectName("pushButton_2")
@@ -283,7 +283,9 @@ class Ui_MainWindow(object):
             # todo: (?) ustawić repaint kiedy widżet nadal jest aktywny, obecnie dopiero po zamknięciu się odświeża
             self.showData()
             ui.refresh = False
-            
+    
+    def addUser(self):
+        ui = Ui_AddUser()
 
     def logout(self):
         self.MainWindow.hide()
@@ -401,6 +403,7 @@ class Ui_MainWindow(object):
         self.comboBox.currentTextChanged.connect(self.showData)
         self.pushButton.clicked.connect(self.addNote)
         self.actionDodaj_oceny.triggered.connect(self.addNote)
+        self.actionDodaj_u_ytkownika.triggered.connect(self.addUser)
         
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)

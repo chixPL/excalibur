@@ -166,7 +166,7 @@ class Ui_AddNote(object):
 
     def retranslateUi(self, Dialog):
         _translate = QtCore.QCoreApplication.translate
-        Dialog.setWindowTitle(_translate("Dialog", "Dialog"))
+        Dialog.setWindowTitle(_translate("Dialog", "Dodawanie oceny"))
         self.label.setText(_translate("Dialog", "Dodawanie oceny"))
         self.label_2.setText(_translate("Dialog", "Sprawdzian"))
         self.label_3.setText(_translate("Dialog", "Uczeń"))
