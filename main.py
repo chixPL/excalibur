@@ -22,6 +22,16 @@ from adduser import Ui_AddUser
 from updateuser import Ui_UpdateUser
 from placeholder import Placeholder
 
+
+# Naprawa błędu związanego z ikoną aplikacji na Windowsie
+import ctypes
+myappid = 'chix.pyqt.excalibur.0.0.5-dev'
+try:
+    ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
+except AttributeError: # Ubuntu, macOS
+    pass
+
+
 class Ui_MainWindow(object):
 
     def __init__(self):
@@ -56,11 +66,11 @@ class Ui_MainWindow(object):
 
         # odpowiednie menu według roli
         if(self.user_role == 'Uczeń'):
-            self.menuNauczyciel.menuAction().setVisible(False)
+            self.menuTeacher.menuAction().setVisible(False)
             self.menuAdmin.menuAction().setVisible(False)
         elif(self.user_role == 'Nauczyciel'):
             self.menuAdmin.menuAction().setVisible(False)
-            self.menuUcze.menuAction().setVisible(False)
+            self.menuStudent.menuAction().setVisible(False)
         
         self.label_2.setText(f"Witaj, {self.user_name} {self.user_surname} | Rola: {self.user_role}")
         self.getClasses()
@@ -178,6 +188,9 @@ class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
         MainWindow.resize(795, 617)
+        icon = QtGui.QIcon()
+        icon.addPixmap(QtGui.QPixmap("logo.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        MainWindow.setWindowIcon(icon)
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
         self.label_2 = QtWidgets.QLabel(self.centralwidget)
@@ -213,7 +226,7 @@ class Ui_MainWindow(object):
         self.pushButton = QtWidgets.QPushButton(self.centralwidget)
         self.pushButton.setGeometry(QtCore.QRect(670, 540, 121, 25))
         icon = QtGui.QIcon()
-        icon.addPixmap(QtGui.QPixmap("ui/../add.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon.addPixmap(QtGui.QPixmap("add.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.pushButton.setIcon(icon)
         self.pushButton.setIconSize(QtCore.QSize(32, 32))
         self.pushButton.setObjectName("pushButton")

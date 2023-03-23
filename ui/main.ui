@@ -13,6 +13,10 @@
   <property name="windowTitle">
    <string>Dziennik</string>
   </property>
+  <property name="windowIcon">
+   <iconset>
+    <normaloff>../logo.png</normaloff>../logo.png</iconset>
+  </property>
   <widget class="QWidget" name="centralwidget">
    <widget class="QLabel" name="label_2">
     <property name="geometry">
@@ -120,7 +124,7 @@
      <x>0</x>
      <y>0</y>
      <width>795</width>
-     <height>22</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuPlik">
