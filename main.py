@@ -19,6 +19,8 @@ from login import Ui_LoginWindow
 from config import config
 from addnote import Ui_AddNote
 from adduser import Ui_AddUser
+from updateuser import Ui_UpdateUser
+from placeholder import Placeholder
 
 class Ui_MainWindow(object):
 
@@ -28,7 +30,7 @@ class Ui_MainWindow(object):
         self.setupUi(MainWindow)
         self.params = config()
     
-    def show(self, email):
+    def show_main(self, email):
         self.MainWindow.show() # startuj UI
         self.getUserInfo(email) # startuj kod
 
@@ -68,7 +70,7 @@ class Ui_MainWindow(object):
         try:
             conn = psycopg2.connect(**self.params)       # łączenie z bazą
             cur = conn.cursor()                     # tworzenie kursora do bazy
-            query = f"SELECT skrot_przedmiotu FROM przedmioty INNER JOIN uzytkownicy ON przedmioty.id_nauczyciela = uzytkownicy.id_uzytkownika WHERE id_nauczyciela = {self.user_id} " # query
+            query = f"SELECT skrot_przedmiotu FROM przedmioty INNER JOIN uzytkownicy ON przedmioty.id_nauczyciela = uzytkownicy.id_uzytkownika WHERE id_nauczyciela = {self.user_id} ORDER BY id_przedmiotu" # query
             cur.execute(query)
             results = cur.fetchall()
         except (Exception, psycopg2.DatabaseError) as err:
@@ -97,15 +99,15 @@ class Ui_MainWindow(object):
             cur.execute(query)
             class_id = cur.fetchone()[0]
 
-            query = f"SELECT id_uzytkownika FROM uzytkownicy_przedmioty WHERE id_przedmiotu = {class_id}" # pobierz ID uczniów którzy się uczą w danej klasie
+            query = f"SELECT id_uzytkownika FROM uzytkownicy_przedmioty WHERE id_przedmiotu = {class_id} ORDER BY id_uzytkownika" # pobierz ID uczniów którzy się uczą w danej klasie
             cur.execute(query)
             user_ids = cur.fetchall()
 
-            query = f"SELECT CONCAT_WS(' ', imie, nazwisko)  FROM uzytkownicy_przedmioty INNER JOIN uzytkownicy ON uzytkownicy_przedmioty.id_uzytkownika = uzytkownicy.id_uzytkownika WHERE uzytkownicy_przedmioty.id_przedmiotu = {class_id}" # pobierz nazwy uczniów
+            query = f"SELECT CONCAT_WS(' ', imie, nazwisko)  FROM uzytkownicy_przedmioty INNER JOIN uzytkownicy ON uzytkownicy_przedmioty.id_uzytkownika = uzytkownicy.id_uzytkownika WHERE uzytkownicy_przedmioty.id_przedmiotu = {class_id} ORDER BY uzytkownicy.id_uzytkownika" # pobierz nazwy uczniów
             cur.execute(query)
             user_names = cur.fetchall()
 
-            query = f"SELECT skrot_sprawdzianu FROM sprawdziany INNER JOIN przedmioty ON sprawdziany.id_przedmiotu=przedmioty.id_przedmiotu WHERE sprawdziany.id_przedmiotu = {class_id}" # pobierz nazwy sprawdzianów
+            query = f"SELECT skrot_sprawdzianu FROM sprawdziany INNER JOIN przedmioty ON sprawdziany.id_przedmiotu=przedmioty.id_przedmiotu WHERE sprawdziany.id_przedmiotu = {class_id} ORDER BY id_sprawdzianu" # pobierz nazwy sprawdzianów
             cur.execute(query)
             test_names = cur.fetchall()
 
@@ -129,6 +131,9 @@ class Ui_MainWindow(object):
                             self.tableWidget.setItem(i, j, QTableWidgetItem(res[j]))
                 except IndexError:
                     pass # todo: usunąć te NULL, jeśli nie wstawiamy wsadowo to nie może ich tutaj być bo będzie kłopot z tym
+                    # inny pomysł: bierzemy za każdym razem ocenę, id sprawdzianu i id użytkownika a potem wstawiamy indexami do tabeli
+                    # do przemyślenia
+
                 query = f"SELECT ROUND(AVG(CAST(LEFT(ocena, 1) AS INT)),2) FROM oceny JOIN sprawdziany ON oceny.id_sprawdzianu = sprawdziany.id_sprawdzianu WHERE id_przedmiotu = {class_id} AND id_ucznia = {user_ids[i][0]}" # pobierz średnią ucznia
                 # LEFT bierze pierwszy znak (w średniej plusy/minusy pomijamy) a CAST zmienia varchary na inty
                 
@@ -158,12 +163,18 @@ class Ui_MainWindow(object):
     
     def addUser(self):
         ui = Ui_AddUser()
+    
+    def updateUser(self):
+        ui = Ui_UpdateUser()
+
+    def showPlaceholder(self):
+        placeholder = Placeholder()
 
     def logout(self):
         self.MainWindow.hide()
         global lw
         lw.clear_show()
-
+    
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
         MainWindow.resize(795, 617)
@@ -202,7 +213,7 @@ class Ui_MainWindow(object):
         self.pushButton = QtWidgets.QPushButton(self.centralwidget)
         self.pushButton.setGeometry(QtCore.QRect(670, 540, 121, 25))
         icon = QtGui.QIcon()
-        icon.addPixmap(QtGui.QPixmap("./add.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon.addPixmap(QtGui.QPixmap("ui/../add.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.pushButton.setIcon(icon)
         self.pushButton.setIconSize(QtCore.QSize(32, 32))
         self.pushButton.setObjectName("pushButton")
@@ -212,71 +223,66 @@ class Ui_MainWindow(object):
         self.menubar.setObjectName("menubar")
         self.menuPlik = QtWidgets.QMenu(self.menubar)
         self.menuPlik.setObjectName("menuPlik")
-        self.menuNauczyciel = QtWidgets.QMenu(self.menubar)
-        self.menuNauczyciel.setObjectName("menuNauczyciel")
+        self.menuStudent = QtWidgets.QMenu(self.menubar)
+        self.menuStudent.setObjectName("menuStudent")
+        self.menuTeacher = QtWidgets.QMenu(self.menubar)
+        self.menuTeacher.setObjectName("menuTeacher")
         self.menuAdmin = QtWidgets.QMenu(self.menubar)
         self.menuAdmin.setObjectName("menuAdmin")
-        self.menuUcze = QtWidgets.QMenu(self.menubar)
-        self.menuUcze.setObjectName("menuUcze")
         MainWindow.setMenuBar(self.menubar)
-        self.statusbar = QtWidgets.QStatusBar(MainWindow)
-        self.statusbar.setObjectName("statusbar")
-        MainWindow.setStatusBar(self.statusbar)
-        self.actionWyloguj_si = QtWidgets.QAction(MainWindow)
-        self.actionWyloguj_si.setObjectName("actionWyloguj_si")
-        self.actionZamknij_program = QtWidgets.QAction(MainWindow)
-        self.actionZamknij_program.setObjectName("actionZamknij_program")
-        self.actionDodaj_u_ytkownika = QtWidgets.QAction(MainWindow)
-        self.actionDodaj_u_ytkownika.setObjectName("actionDodaj_u_ytkownika")
-        self.actionDodaj_klas = QtWidgets.QAction(MainWindow)
-        self.actionDodaj_klas.setObjectName("actionDodaj_klas")
-        self.actionDodaj_sprawdzian = QtWidgets.QAction(MainWindow)
-        self.actionDodaj_sprawdzian.setObjectName("actionDodaj_sprawdzian")
-        self.actionDodaj_ocen = QtWidgets.QAction(MainWindow)
-        self.actionDodaj_ocen.setObjectName("actionDodaj_ocen")
-        self.actionDodaj_wiele_ocen = QtWidgets.QAction(MainWindow)
-        self.actionDodaj_wiele_ocen.setObjectName("actionDodaj_wiele_ocen")
-        self.actionZmie_oceny = QtWidgets.QAction(MainWindow)
-        self.actionZmie_oceny.setObjectName("actionZmie_oceny")
-        self.actionDodaj_oceny = QtWidgets.QAction(MainWindow)
-        self.actionDodaj_oceny.setObjectName("actionDodaj_oceny")
-        self.actionDodaj_wiele_ocen_2 = QtWidgets.QAction(MainWindow)
-        self.actionDodaj_wiele_ocen_2.setObjectName("actionDodaj_wiele_ocen_2")
-        self.actionZmie_oceny_2 = QtWidgets.QAction(MainWindow)
-        self.actionZmie_oceny_2.setObjectName("actionZmie_oceny_2")
-        self.actionZmie_w_a_ciwo_ci_u_ytkownika = QtWidgets.QAction(MainWindow)
-        self.actionZmie_w_a_ciwo_ci_u_ytkownika.setObjectName("actionZmie_w_a_ciwo_ci_u_ytkownika")
-        self.actionDodaj_klas_2 = QtWidgets.QAction(MainWindow)
-        self.actionDodaj_klas_2.setObjectName("actionDodaj_klas_2")
-        self.actionZmie_w_a_ciwo_ci_klasy = QtWidgets.QAction(MainWindow)
-        self.actionZmie_w_a_ciwo_ci_klasy.setObjectName("actionZmie_w_a_ciwo_ci_klasy")
-        self.menuPlik.addAction(self.actionWyloguj_si)
-        self.menuPlik.addAction(self.actionZamknij_program)
-        self.menuNauczyciel.addAction(self.actionDodaj_sprawdzian)
-        self.menuNauczyciel.addSeparator()
-        self.menuNauczyciel.addAction(self.actionDodaj_oceny)
-        self.menuNauczyciel.addAction(self.actionDodaj_wiele_ocen_2)
-        self.menuNauczyciel.addSeparator()
-        self.menuNauczyciel.addAction(self.actionZmie_oceny_2)
-        self.menuAdmin.addAction(self.actionDodaj_u_ytkownika)
-        self.menuAdmin.addAction(self.actionZmie_w_a_ciwo_ci_u_ytkownika)
+        self.actionLogout = QtWidgets.QAction(MainWindow)
+        self.actionLogout.setObjectName("actionLogout")
+        self.actionCloseProgram = QtWidgets.QAction(MainWindow)
+        self.actionCloseProgram.setObjectName("actionCloseProgram")
+        self.actionAddTest = QtWidgets.QAction(MainWindow)
+        self.actionAddTest.setObjectName("actionAddTest")
+        self.actionAddGrade = QtWidgets.QAction(MainWindow)
+        self.actionAddGrade.setObjectName("actionAddGrade")
+        self.actionChangeGrade = QtWidgets.QAction(MainWindow)
+        self.actionChangeGrade.setObjectName("actionChangeGrade")
+        self.actionAddUser = QtWidgets.QAction(MainWindow)
+        self.actionAddUser.setObjectName("actionAddUser")
+        self.actionChangeUser = QtWidgets.QAction(MainWindow)
+        self.actionChangeUser.setObjectName("actionChangeUser")
+        self.actionAddClass = QtWidgets.QAction(MainWindow)
+        self.actionAddClass.setObjectName("actionAddClass")
+        self.actionChangeClass = QtWidgets.QAction(MainWindow)
+        self.actionChangeClass.setObjectName("actionChangeClass")
+        self.menuPlik.addAction(self.actionLogout)
+        self.menuPlik.addAction(self.actionCloseProgram)
+        self.menuTeacher.addAction(self.actionAddTest)
+        self.menuTeacher.addSeparator()
+        self.menuTeacher.addAction(self.actionAddGrade)
+        self.menuTeacher.addAction(self.actionChangeGrade)
+        self.menuAdmin.addAction(self.actionAddUser)
+        self.menuAdmin.addAction(self.actionChangeUser)
         self.menuAdmin.addSeparator()
-        self.menuAdmin.addAction(self.actionDodaj_klas_2)
-        self.menuAdmin.addAction(self.actionZmie_w_a_ciwo_ci_klasy)
+        self.menuAdmin.addAction(self.actionAddClass)
+        self.menuAdmin.addAction(self.actionChangeClass)
         self.menubar.addAction(self.menuPlik.menuAction())
-        self.menubar.addAction(self.menuUcze.menuAction())
-        self.menubar.addAction(self.menuNauczyciel.menuAction())
+        self.menubar.addAction(self.menuStudent.menuAction())
+        self.menubar.addAction(self.menuTeacher.menuAction())
         self.menubar.addAction(self.menuAdmin.menuAction())
 
         # Mój kod
 
-        self.actionWyloguj_si.triggered.connect(self.logout)
-        self.actionZamknij_program.triggered.connect(app.closeAllWindows)
+        # Przyciski i autoodświeżanie
         self.comboBox.currentTextChanged.connect(self.showData)
         self.pushButton.clicked.connect(self.addNote)
-        self.actionDodaj_oceny.triggered.connect(self.addNote)
-        self.actionDodaj_u_ytkownika.triggered.connect(self.addUser)
+
+        # Menu
+        self.actionLogout.triggered.connect(self.logout)
+        self.actionCloseProgram.triggered.connect(app.closeAllWindows)
+        self.actionAddGrade.triggered.connect(self.addNote)
+        self.actionAddUser.triggered.connect(self.addUser)
+        self.actionChangeUser.triggered.connect(self.updateUser)
         
+        # Placeholdery
+        self.actionAddClass.triggered.connect(self.showPlaceholder)
+        self.actionChangeClass.triggered.connect(self.showPlaceholder)
+        self.actionAddTest.triggered.connect(self.showPlaceholder)
+        self.actionChangeGrade.triggered.connect(self.showPlaceholder)
+
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
@@ -287,24 +293,19 @@ class Ui_MainWindow(object):
         self.label.setText(_translate("MainWindow", "Klasa:"))
         self.pushButton.setText(_translate("MainWindow", "Dodaj ocenę"))
         self.menuPlik.setTitle(_translate("MainWindow", "Plik"))
-        self.menuNauczyciel.setTitle(_translate("MainWindow", "Nauczyciel"))
+        self.menuStudent.setTitle(_translate("MainWindow", "Uczeń"))
+        self.menuTeacher.setTitle(_translate("MainWindow", "Nauczyciel"))
         self.menuAdmin.setTitle(_translate("MainWindow", "Admin"))
-        self.menuUcze.setTitle(_translate("MainWindow", "Uczeń"))
-        self.actionWyloguj_si.setText(_translate("MainWindow", "Wyloguj się"))
-        self.actionZamknij_program.setText(_translate("MainWindow", "Zamknij program"))
-        self.actionZamknij_program.setShortcut(_translate("MainWindow", "Ctrl+W"))
-        self.actionDodaj_u_ytkownika.setText(_translate("MainWindow", "Dodaj użytkownika"))
-        self.actionDodaj_klas.setText(_translate("MainWindow", "Dodaj klasę"))
-        self.actionDodaj_sprawdzian.setText(_translate("MainWindow", "Dodaj sprawdzian"))
-        self.actionDodaj_ocen.setText(_translate("MainWindow", "Dodaj ocenę"))
-        self.actionDodaj_wiele_ocen.setText(_translate("MainWindow", "Dodaj wiele ocen"))
-        self.actionZmie_oceny.setText(_translate("MainWindow", "Zmień oceny"))
-        self.actionDodaj_oceny.setText(_translate("MainWindow", "Dodaj ocenę"))
-        self.actionDodaj_wiele_ocen_2.setText(_translate("MainWindow", "Dodaj wiele ocen"))
-        self.actionZmie_oceny_2.setText(_translate("MainWindow", "Zmień oceny"))
-        self.actionZmie_w_a_ciwo_ci_u_ytkownika.setText(_translate("MainWindow", "Zmień właściwości użytkownika"))
-        self.actionDodaj_klas_2.setText(_translate("MainWindow", "Dodaj klasę"))
-        self.actionZmie_w_a_ciwo_ci_klasy.setText(_translate("MainWindow", "Zmień właściwości klasy"))
+        self.actionLogout.setText(_translate("MainWindow", "Wyloguj się"))
+        self.actionCloseProgram.setText(_translate("MainWindow", "Zamknij program"))
+        self.actionCloseProgram.setShortcut(_translate("MainWindow", "Ctrl+W"))
+        self.actionAddTest.setText(_translate("MainWindow", "Dodaj sprawdzian"))
+        self.actionAddGrade.setText(_translate("MainWindow", "Dodaj ocenę"))
+        self.actionChangeGrade.setText(_translate("MainWindow", "Zmień ocenę"))
+        self.actionAddUser.setText(_translate("MainWindow", "Dodaj użytkownika"))
+        self.actionChangeUser.setText(_translate("MainWindow", "Zmień właściwości użytkownika"))
+        self.actionAddClass.setText(_translate("MainWindow", "Dodaj klasę"))
+        self.actionChangeClass.setText(_translate("MainWindow", "Zmień właściwości klasy"))
 
 
 

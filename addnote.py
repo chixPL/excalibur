@@ -21,7 +21,7 @@ class Ui_AddNote(object):
         self.Dialog = QtWidgets.QDialog()
         self.setupUi(self.Dialog)
         self.Dialog.show()
-        self.Dialog.exec()
+        self.Dialog.exec_()
 
 
     def fillComboBoxes(self):
@@ -35,11 +35,11 @@ class Ui_AddNote(object):
             cur.execute(query)
             class_id = cur.fetchone()[0]
 
-            query = f"SELECT CONCAT_WS(' ', imie, nazwisko)  FROM uzytkownicy_przedmioty INNER JOIN uzytkownicy ON uzytkownicy_przedmioty.id_uzytkownika = uzytkownicy.id_uzytkownika WHERE uzytkownicy_przedmioty.id_przedmiotu = {class_id}" # pobierz nazwy uczniów
+            query = f"SELECT CONCAT_WS(' ', imie, nazwisko)  FROM uzytkownicy_przedmioty INNER JOIN uzytkownicy ON uzytkownicy_przedmioty.id_uzytkownika = uzytkownicy.id_uzytkownika WHERE uzytkownicy_przedmioty.id_przedmiotu = {class_id} ORDER BY uzytkownicy.id_uzytkownika" # pobierz nazwy uczniów
             cur.execute(query)
             user_names = cur.fetchall()
 
-            query = f"SELECT skrot_sprawdzianu FROM sprawdziany INNER JOIN przedmioty ON sprawdziany.id_przedmiotu=przedmioty.id_przedmiotu WHERE sprawdziany.id_przedmiotu = {class_id}" # pobierz nazwy sprawdzianów
+            query = f"SELECT skrot_sprawdzianu FROM sprawdziany INNER JOIN przedmioty ON sprawdziany.id_przedmiotu=przedmioty.id_przedmiotu WHERE sprawdziany.id_przedmiotu = {class_id} ORDER BY sprawdziany.id_sprawdzianu" # pobierz nazwy sprawdzianów
             cur.execute(query)
             test_names = cur.fetchall()
 

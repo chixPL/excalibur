@@ -73,7 +73,7 @@ class Ui_LoginWindow(object):
             if(self.checkLoginData(email, haslo_md5)):
                 self.messageBox("Logowanie powiodło się!", QtWidgets.QMessageBox.Information, "Zostałeś zalogowany.")
                 self.Form.close()
-                self.main.show(email)
+                self.main.show_main(email)
             else:
                 self.messageBox("Logowanie nie powiodło się", QtWidgets.QMessageBox.Warning, "Adres e-mail lub hasło jest nieprawidłowe.")
 

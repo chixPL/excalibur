@@ -127,47 +127,44 @@
     <property name="title">
      <string>Plik</string>
     </property>
-    <addaction name="actionWyloguj_si"/>
-    <addaction name="actionZamknij_program"/>
+    <addaction name="actionLogout"/>
+    <addaction name="actionCloseProgram"/>
    </widget>
-   <widget class="QMenu" name="menuNauczyciel">
+   <widget class="QMenu" name="menuStudent">
+    <property name="title">
+     <string>Uczeń</string>
+    </property>
+   </widget>
+   <widget class="QMenu" name="menuTeacher">
     <property name="title">
      <string>Nauczyciel</string>
     </property>
-    <addaction name="actionDodaj_sprawdzian"/>
+    <addaction name="actionAddTest"/>
     <addaction name="separator"/>
-    <addaction name="actionDodaj_oceny"/>
-    <addaction name="actionDodaj_wiele_ocen_2"/>
-    <addaction name="separator"/>
-    <addaction name="actionZmie_oceny_2"/>
+    <addaction name="actionAddGrade"/>
+    <addaction name="actionChangeGrade"/>
    </widget>
    <widget class="QMenu" name="menuAdmin">
     <property name="title">
      <string>Admin</string>
     </property>
-    <addaction name="actionDodaj_u_ytkownika"/>
-    <addaction name="actionZmie_w_a_ciwo_ci_u_ytkownika"/>
+    <addaction name="actionAddUser"/>
+    <addaction name="actionChangeUser"/>
     <addaction name="separator"/>
-    <addaction name="actionDodaj_klas_2"/>
-    <addaction name="actionZmie_w_a_ciwo_ci_klasy"/>
-   </widget>
-   <widget class="QMenu" name="menuUcze">
-    <property name="title">
-     <string>Uczeń</string>
-    </property>
+    <addaction name="actionAddClass"/>
+    <addaction name="actionChangeClass"/>
    </widget>
    <addaction name="menuPlik"/>
-   <addaction name="menuUcze"/>
-   <addaction name="menuNauczyciel"/>
+   <addaction name="menuStudent"/>
+   <addaction name="menuTeacher"/>
    <addaction name="menuAdmin"/>
   </widget>
-  <widget class="QStatusBar" name="statusbar"/>
-  <action name="actionWyloguj_si">
+  <action name="actionLogout">
    <property name="text">
     <string>Wyloguj się</string>
    </property>
   </action>
-  <action name="actionZamknij_program">
+  <action name="actionCloseProgram">
    <property name="text">
     <string>Zamknij program</string>
    </property>
@@ -175,62 +172,37 @@
     <string>Ctrl+W</string>
    </property>
   </action>
-  <action name="actionDodaj_u_ytkownika">
-   <property name="text">
-    <string>Dodaj użytkownika</string>
-   </property>
-  </action>
-  <action name="actionDodaj_klas">
-   <property name="text">
-    <string>Dodaj klasę</string>
-   </property>
-  </action>
-  <action name="actionDodaj_sprawdzian">
+  <action name="actionAddTest">
    <property name="text">
     <string>Dodaj sprawdzian</string>
    </property>
   </action>
-  <action name="actionDodaj_ocen">
+  <action name="actionAddGrade">
    <property name="text">
     <string>Dodaj ocenę</string>
    </property>
   </action>
-  <action name="actionDodaj_wiele_ocen">
+  <action name="actionChangeGrade">
    <property name="text">
-    <string>Dodaj wiele ocen</string>
+    <string>Zmień ocenę</string>
    </property>
   </action>
-  <action name="actionZmie_oceny">
+  <action name="actionAddUser">
    <property name="text">
-    <string>Zmień oceny</string>
+    <string>Dodaj użytkownika</string>
    </property>
   </action>
-  <action name="actionDodaj_oceny">
-   <property name="text">
-    <string>Dodaj ocenę</string>
-   </property>
-  </action>
-  <action name="actionDodaj_wiele_ocen_2">
-   <property name="text">
-    <string>Dodaj wiele ocen</string>
-   </property>
-  </action>
-  <action name="actionZmie_oceny_2">
-   <property name="text">
-    <string>Zmień oceny</string>
-   </property>
-  </action>
-  <action name="actionZmie_w_a_ciwo_ci_u_ytkownika">
+  <action name="actionChangeUser">
    <property name="text">
     <string>Zmień właściwości użytkownika</string>
    </property>
   </action>
-  <action name="actionDodaj_klas_2">
+  <action name="actionAddClass">
    <property name="text">
     <string>Dodaj klasę</string>
    </property>
   </action>
-  <action name="actionZmie_w_a_ciwo_ci_klasy">
+  <action name="actionChangeClass">
    <property name="text">
     <string>Zmień właściwości klasy</string>
    </property>
