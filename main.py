@@ -1,16 +1,17 @@
 # -*- coding: utf-8 -*-
 
 """
-
 Excalibur - dziennik szkolny
 by Jakub Rutkowski (chixPL) 2023
-
 """
+
+currentVersion = "0.0.6-dev" # wersja aplikacji
 
 # Standardowe importy
 
-from PyQt5 import QtCore, QtGui, QtWidgets, QtSql
+from PyQt5 import QtCore, QtGui, QtWidgets
 import psycopg2
+import datetime
 from PyQt5.QtWidgets import QTableWidgetItem
 
 # Własne pliki
@@ -21,19 +22,20 @@ from adduser import Ui_AddUser
 from updateuser import Ui_UpdateUser
 from placeholder import Placeholder
 
-
 # Naprawa błędu związanego z ikoną aplikacji na Windowsie
 import ctypes
-myappid = 'chix.pyqt.excalibur.0.0.5-dev'
+myappid = 'chix.pyqt.excalibur.v' + currentVersion
 try:
     ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
 except AttributeError: # Ubuntu, macOS
     pass
 
-
 class Ui_MainWindow(object):
 
     def __init__(self):
+        global currentVersion
+        self.currentVersion = currentVersion
+
         MainWindow = QtWidgets.QMainWindow()
         self.MainWindow = MainWindow
         self.setupUi(MainWindow)
@@ -71,7 +73,7 @@ class Ui_MainWindow(object):
             self.menuAdmin.menuAction().setVisible(False)
             self.menuStudent.menuAction().setVisible(False)
         
-        self.label_2.setText(f"Witaj, {self.user_name} {self.user_surname} | Rola: {self.user_role}")
+        self.label_2.setText(f"Witaj, {self.user_name} {self.user_surname}! | Twoja rola: {self.user_role}")
         self.getClasses()
 
     def getClasses(self):
@@ -130,18 +132,15 @@ class Ui_MainWindow(object):
             self.tableWidget.setVerticalHeaderLabels(user_names)
 
             for i in range(0, len(user_ids)):
-                query = f"SELECT ocena FROM oceny WHERE id_ucznia = {user_ids[i][0]}"
+                query = f"SELECT ocena, id_sprawdzianu FROM oceny WHERE id_ucznia = {user_ids[i][0]}"
+                # todo: wszystkie informacje o ocenie po dwukliku na ocenę w tablicy
                 cur.execute(query)
-                res = [x[0] for x in cur.fetchall()]
+                res = cur.fetchall()
+                grades = [x[0] for x in res]
+                test_ids = [x[1] for x in res]
                 # wstawiaj kolumnami
-                try:
-                    for j in range(0, len(test_names)-1):
-                        if res[j] is not None:
-                            self.tableWidget.setItem(i, j, QTableWidgetItem(res[j]))
-                except IndexError:
-                    pass # todo: usunąć te NULL, jeśli nie wstawiamy wsadowo to nie może ich tutaj być bo będzie kłopot z tym
-                    # inny pomysł: bierzemy za każdym razem ocenę, id sprawdzianu i id użytkownika a potem wstawiamy indexami do tabeli
-                    # do przemyślenia
+                for j in range(0, len(test_ids)):
+                    self.tableWidget.setItem(i, test_ids[j]-1, QTableWidgetItem(grades[j]))
 
                 query = f"SELECT ROUND(AVG(CAST(LEFT(ocena, 1) AS INT)),2) FROM oceny JOIN sprawdziany ON oceny.id_sprawdzianu = sprawdziany.id_sprawdzianu WHERE id_przedmiotu = {class_id} AND id_ucznia = {user_ids[i][0]}" # pobierz średnią ucznia
                 # LEFT bierze pierwszy znak (w średniej plusy/minusy pomijamy) a CAST zmienia varchary na inty
@@ -186,18 +185,14 @@ class Ui_MainWindow(object):
     
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(795, 617)
+        MainWindow.resize(831, 649)
         icon = QtGui.QIcon()
-        icon.addPixmap(QtGui.QPixmap("logo.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon.addPixmap(QtGui.QPixmap("ui/../images/logo.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         MainWindow.setWindowIcon(icon)
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
-        self.label_2 = QtWidgets.QLabel(self.centralwidget)
-        self.label_2.setGeometry(QtCore.QRect(530, 0, 261, 31))
-        self.label_2.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
-        self.label_2.setObjectName("label_2")
         self.tableWidget = QtWidgets.QTableWidget(self.centralwidget)
-        self.tableWidget.setGeometry(QtCore.QRect(10, 40, 781, 501))
+        self.tableWidget.setGeometry(QtCore.QRect(10, 50, 811, 531))
         self.tableWidget.setObjectName("tableWidget")
         self.tableWidget.setColumnCount(0)
         self.tableWidget.setRowCount(0)
@@ -205,33 +200,101 @@ class Ui_MainWindow(object):
         self.tableWidget.horizontalHeader().setStretchLastSection(False)
         self.tableWidget.verticalHeader().setCascadingSectionResizes(False)
         self.tableWidget.verticalHeader().setStretchLastSection(False)
-        self.frame = QtWidgets.QFrame(self.centralwidget)
-        self.frame.setGeometry(QtCore.QRect(10, 10, 131, 21))
-        self.frame.setFrameShape(QtWidgets.QFrame.StyledPanel)
-        self.frame.setFrameShadow(QtWidgets.QFrame.Raised)
-        self.frame.setObjectName("frame")
-        self.layoutWidget = QtWidgets.QWidget(self.frame)
-        self.layoutWidget.setGeometry(QtCore.QRect(0, 0, 134, 27))
-        self.layoutWidget.setObjectName("layoutWidget")
-        self.horizontalLayout = QtWidgets.QHBoxLayout(self.layoutWidget)
-        self.horizontalLayout.setContentsMargins(0, 0, 0, 0)
-        self.horizontalLayout.setObjectName("horizontalLayout")
-        self.label = QtWidgets.QLabel(self.layoutWidget)
-        self.label.setObjectName("label")
-        self.horizontalLayout.addWidget(self.label)
-        self.comboBox = QtWidgets.QComboBox(self.layoutWidget)
-        self.comboBox.setObjectName("comboBox")
-        self.horizontalLayout.addWidget(self.comboBox)
         self.pushButton = QtWidgets.QPushButton(self.centralwidget)
-        self.pushButton.setGeometry(QtCore.QRect(670, 540, 121, 25))
-        icon = QtGui.QIcon()
-        icon.addPixmap(QtGui.QPixmap("add.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
-        self.pushButton.setIcon(icon)
+        self.pushButton.setGeometry(QtCore.QRect(700, 580, 121, 25))
+        icon1 = QtGui.QIcon()
+        icon1.addPixmap(QtGui.QPixmap("ui/../images/add.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.pushButton.setIcon(icon1)
         self.pushButton.setIconSize(QtCore.QSize(32, 32))
         self.pushButton.setObjectName("pushButton")
+        self.widget = QtWidgets.QWidget(self.centralwidget)
+        self.widget.setGeometry(QtCore.QRect(0, 2, 821, 45))
+        self.widget.setObjectName("widget")
+        self.verticalLayout = QtWidgets.QVBoxLayout(self.widget)
+        self.verticalLayout.setContentsMargins(0, 0, 0, 0)
+        self.verticalLayout.setObjectName("verticalLayout")
+        self.horizontalLayout = QtWidgets.QHBoxLayout()
+        self.horizontalLayout.setObjectName("horizontalLayout")
+        self.label_3 = QtWidgets.QLabel(self.widget)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.label_3.sizePolicy().hasHeightForWidth())
+        self.label_3.setSizePolicy(sizePolicy)
+        self.label_3.setMinimumSize(QtCore.QSize(32, 32))
+        self.label_3.setMaximumSize(QtCore.QSize(32, 32))
+        self.label_3.setText("")
+        self.label_3.setPixmap(QtGui.QPixmap("ui/../images/logo.png"))
+        self.label_3.setScaledContents(True)
+        self.label_3.setObjectName("label_3")
+        self.horizontalLayout.addWidget(self.label_3)
+        self.line_2 = QtWidgets.QFrame(self.widget)
+        self.line_2.setFrameShape(QtWidgets.QFrame.VLine)
+        self.line_2.setFrameShadow(QtWidgets.QFrame.Sunken)
+        self.line_2.setObjectName("line_2")
+        self.horizontalLayout.addWidget(self.line_2)
+        self.label = QtWidgets.QLabel(self.widget)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.label.sizePolicy().hasHeightForWidth())
+        self.label.setSizePolicy(sizePolicy)
+        self.label.setObjectName("label")
+        self.horizontalLayout.addWidget(self.label)
+        self.comboBox = QtWidgets.QComboBox(self.widget)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.comboBox.sizePolicy().hasHeightForWidth())
+        self.comboBox.setSizePolicy(sizePolicy)
+        self.comboBox.setObjectName("comboBox")
+        self.horizontalLayout.addWidget(self.comboBox)
+        self.label_2 = QtWidgets.QLabel(self.widget)
+        font = QtGui.QFont()
+        font.setPointSize(13)
+        self.label_2.setFont(font)
+        self.label_2.setAlignment(QtCore.Qt.AlignCenter)
+        self.label_2.setObjectName("label_2")
+        self.horizontalLayout.addWidget(self.label_2)
+        self.label_5 = QtWidgets.QLabel(self.widget)
+        self.label_5.setMinimumSize(QtCore.QSize(32, 32))
+        self.label_5.setMaximumSize(QtCore.QSize(32, 32))
+        font = QtGui.QFont()
+        font.setPointSize(13)
+        self.label_5.setFont(font)
+        self.label_5.setText("")
+        self.label_5.setPixmap(QtGui.QPixmap("ui/../images/time.png"))
+        self.label_5.setScaledContents(True)
+        self.label_5.setObjectName("label_5")
+        self.horizontalLayout.addWidget(self.label_5)
+        self.label_4 = QtWidgets.QLabel(self.widget)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Preferred)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.label_4.sizePolicy().hasHeightForWidth())
+        self.label_4.setSizePolicy(sizePolicy)
+        font = QtGui.QFont()
+        font.setPointSize(13)
+        self.label_4.setFont(font)
+        self.label_4.setObjectName("label_4")
+        self.horizontalLayout.addWidget(self.label_4)
+        self.pushButton_2 = QtWidgets.QPushButton(self.widget)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.pushButton_2.sizePolicy().hasHeightForWidth())
+        self.pushButton_2.setSizePolicy(sizePolicy)
+        self.pushButton_2.setObjectName("pushButton_2")
+        self.horizontalLayout.addWidget(self.pushButton_2)
+        self.verticalLayout.addLayout(self.horizontalLayout)
+        self.line = QtWidgets.QFrame(self.widget)
+        self.line.setFrameShape(QtWidgets.QFrame.HLine)
+        self.line.setFrameShadow(QtWidgets.QFrame.Sunken)
+        self.line.setObjectName("line")
+        self.verticalLayout.addWidget(self.line)
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(MainWindow)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 795, 22))
+        self.menubar.setGeometry(QtCore.QRect(0, 0, 831, 22))
         self.menubar.setObjectName("menubar")
         self.menuPlik = QtWidgets.QMenu(self.menubar)
         self.menuPlik.setObjectName("menuPlik")
@@ -281,6 +344,14 @@ class Ui_MainWindow(object):
         # Przyciski i autoodświeżanie
         self.comboBox.currentTextChanged.connect(self.showData)
         self.pushButton.clicked.connect(self.addNote)
+        self.pushButton_2.clicked.connect(self.logout)
+
+        # Zegar
+        timer = QtCore.QTimer(self.label_4)
+        # adding action to timer
+        timer.timeout.connect(lambda: self.label_4.setText(datetime.datetime.now().strftime("%H:%M")))
+        # update the timer every second
+        timer.start(60000)
 
         # Menu
         self.actionLogout.triggered.connect(self.logout)
@@ -301,9 +372,10 @@ class Ui_MainWindow(object):
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "Dziennik"))
-        self.label_2.setText(_translate("MainWindow", "Witaj, username ! | Rola: role"))
-        self.label.setText(_translate("MainWindow", "Klasa:"))
         self.pushButton.setText(_translate("MainWindow", "Dodaj ocenę"))
+        self.label.setText(_translate("MainWindow", "Klasa:"))
+        self.label_4.setText(_translate("MainWindow", datetime.datetime.now().strftime("%H:%M")))
+        self.pushButton_2.setText(_translate("MainWindow", "Wyloguj się"))
         self.menuPlik.setTitle(_translate("MainWindow", "Plik"))
         self.menuStudent.setTitle(_translate("MainWindow", "Uczeń"))
         self.menuTeacher.setTitle(_translate("MainWindow", "Nauczyciel"))
@@ -320,11 +392,9 @@ class Ui_MainWindow(object):
         self.actionChangeClass.setText(_translate("MainWindow", "Zmień właściwości klasy"))
 
 
-
 if __name__ == "__main__":
     import sys
     app = QtWidgets.QApplication(sys.argv)
     main = Ui_MainWindow()
     lw = Ui_LoginWindow(main)
     sys.exit(app.exec_())
-

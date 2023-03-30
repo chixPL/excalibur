@@ -5,5 +5,5 @@ def validateEmail(email):
         return (len(email) != 0 and re.fullmatch(email_regex, email))
 
 def validatePassword(password):
-        password_regex = r'^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$' # minimum 8 znaków, co najmniej jedna litera i jedna cyfra
+        password_regex = r'[A-Za-z0-9@#$%^&+=]{8,}' # minimum 8 znaków, jedyne dozwolone znaki to litery, cyfry i znaki specjalne
         return (len(password) != 0 and re.fullmatch(password_regex, password))

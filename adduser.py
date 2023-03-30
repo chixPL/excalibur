@@ -55,7 +55,7 @@ class Ui_AddUser(object):
             messageBox("Błąd", QtWidgets.QMessageBox.Critical, "Nieprawidłowy adres e-mail", "Wpisz poprawny adres e-mail")
             return
         elif not validatePassword(haslo):
-            messageBox("Błąd", QtWidgets.QMessageBox.Critical, "Nieprawidłowe hasło", "Hasło musi zawierać co najmniej 8 znaków, co najmniej jedną literę i jedną cyfrę")
+            messageBox("Błąd", QtWidgets.QMessageBox.Critical, "Nieprawidłowe hasło", "Hasło musi zawierać co najmniej 8 znaków")
             return
         elif self.checkIfEmailExists(email):
             messageBox("Błąd", QtWidgets.QMessageBox.Critical, "Adres e-mail jest już zajęty", "Użytkownik o podanym adresie e-mail już istnieje")

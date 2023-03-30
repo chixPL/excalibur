@@ -31,7 +31,7 @@
     <string>Dodawanie użytkownika</string>
    </property>
   </widget>
-  <widget class="QWidget" name="">
+  <widget class="QWidget" name="layoutWidget">
    <property name="geometry">
     <rect>
      <x>10</x>
@@ -44,14 +44,17 @@
     <item>
      <widget class="QLabel" name="label_5">
       <property name="text">
-       <string>Imię</string>
+       <string>Skrót klasy</string>
       </property>
      </widget>
     </item>
     <item>
      <widget class="QLineEdit" name="lineEdit">
+      <property name="maxLength">
+       <number>10</number>
+      </property>
       <property name="echoMode">
-       <enum>QLineEdit::Password</enum>
+       <enum>QLineEdit::Normal</enum>
       </property>
      </widget>
     </item>

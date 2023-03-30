@@ -9,7 +9,6 @@
 
 
 from PyQt5 import QtCore, QtGui, QtWidgets
-import re
 import hashlib
 import psycopg2
 
@@ -71,12 +70,12 @@ class Ui_LoginWindow(object):
         Form.setObjectName("Form")
         Form.resize(562, 385)
         icon = QtGui.QIcon()
-        icon.addPixmap(QtGui.QPixmap("logo.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon.addPixmap(QtGui.QPixmap("images/logo.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         Form.setWindowIcon(icon)
         self.label = QtWidgets.QLabel(Form)
         self.label.setGeometry(QtCore.QRect(10, 0, 81, 81))
         self.label.setText("")
-        self.label.setPixmap(QtGui.QPixmap("logo.png"))
+        self.label.setPixmap(QtGui.QPixmap("images/logo.png"))
         self.label.setScaledContents(True)
         self.label.setObjectName("label")
         self.layoutWidget = QtWidgets.QWidget(Form)
@@ -100,7 +99,7 @@ class Ui_LoginWindow(object):
         self.verticalLayout.addWidget(self.lineEdit_2)
         self.pushButton = QtWidgets.QPushButton(self.layoutWidget)
         icon1 = QtGui.QIcon()
-        icon1.addPixmap(QtGui.QPixmap("ui/../login.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon1.addPixmap(QtGui.QPixmap("images/login.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.pushButton.setIcon(icon1)
         self.pushButton.setIconSize(QtCore.QSize(20, 20))
         self.pushButton.setObjectName("pushButton")
@@ -159,6 +158,6 @@ class Ui_LoginWindow(object):
         self.pushButton.setText(_translate("Form", "Zaloguj"))
         self.pushButton.setShortcut(_translate("Form", "Return"))
         self.pushButton_2.setText(_translate("Form", "Zapomniałeś hasła?"))
-        self.label_6.setText(_translate("Form", "Excalibur v.0.0.5-dev"))
+        self.label_6.setText(_translate("Form", f"Excalibur v.{self.main.currentVersion}"))
         self.label_2.setText(_translate("Form", "Logowanie"))
         self.label_4.setText(_translate("Form", "Zaloguj się do dziennika."))

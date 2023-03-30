@@ -70,7 +70,7 @@ class Ui_IForgot(object):
                 if conn is not None:
                     conn.close()                        # zamknięcie konektora do bazy
         else:
-            messageBox("Reset hasła nie powiódł się", QtWidgets.QMessageBox.Warning, "Niewłaściwe hasło. Hasło musi mieć minimum 8 znaków, co najmniej jedną literę i jedną cyfrę.")
+            messageBox("Reset hasła nie powiódł się", QtWidgets.QMessageBox.Warning, "Niewłaściwe hasło. Hasło musi mieć minimum 8 znaków.")
 
 
     def show_hide(self):
