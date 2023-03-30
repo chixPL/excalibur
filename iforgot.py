@@ -15,6 +15,8 @@ import re
 import hashlib
 from config import config
 from uuid import uuid4
+from validate import validateEmail, validatePassword
+from messagebox import messageBox
 
 class Ui_IForgot(object):
 
@@ -28,54 +30,48 @@ class Ui_IForgot(object):
     def initProcess(self):
         email = self.lineEdit.text()
 
-        if(self.validateEmail(email)):
+        if(validateEmail(email)):
             if(self.checkEmailInDB(email)):
                 token = str(uuid4())
                 self.addTokenToDB(email, token)
                 self.sendMail(email, token)
             else:
-                self.messageBox("Reset hasła nie powiódł się", QtWidgets.QMessageBox.Warning, "Tego adresu e-mail nie ma w systemie.")
+                messageBox("Reset hasła nie powiódł się", QtWidgets.QMessageBox.Warning, "Tego adresu e-mail nie ma w systemie.")
         else:
-            self.messageBox("Reset hasła nie powiódł się", QtWidgets.QMessageBox.Warning, "Niewłaściwy email. Adres musi zawierać znaki @ i .")
+            messageBox("Reset hasła nie powiódł się", QtWidgets.QMessageBox.Warning, "Niewłaściwy email. Adres musi zawierać znaki @ i .")
     
     def changePassword(self):
         token = self.lineEdit_2.text()
         new_pass = self.lineEdit_3.text()
 
-        conn = None
-        try:
-            params = config()                       # wczytujemy paramtery połaczenia z bazą
-            conn = psycopg2.connect(**params)       # łączenie z bazą
-            cur = conn.cursor()                     # tworzenie kursora do bazy
-            query = f"SELECT COUNT(*) FROM uzytkownicy WHERE reset_token = \'{token}\'" # query
-            cur.execute(query)
-            result = cur.fetchone()[0]
-            if result != 0:
-                query = f"UPDATE uzytkownicy SET haslo = \'{hashlib.md5(new_pass.encode('utf-8')).hexdigest()}\' WHERE reset_token = \'{token}\'" # zmień hasło
+        if(validatePassword(new_pass)):
+            conn = None
+            try:
+                params = config()                       # wczytujemy paramtery połaczenia z bazą
+                conn = psycopg2.connect(**params)       # łączenie z bazą
+                cur = conn.cursor()                     # tworzenie kursora do bazy
+                query = f"SELECT COUNT(*) FROM uzytkownicy WHERE reset_token = \'{token}\'" # query
                 cur.execute(query)
-                query = f"UPDATE uzytkownicy SET reset_token = NULL WHERE reset_token = \'{token}\'" # usuń token po wykorzystaniu
-                cur.execute(query)
-                conn.commit()
-                self.messageBox("Reset hasła pomyślny", QtWidgets.QMessageBox.Information, "Twoje hasło zostało zresetowane.")
-                self.Dialog.close()
-            else:
-                self.messageBox("Reset hasła nie powiódł się", QtWidgets.QMessageBox.Warning, "Niewłaściwy token. Spróbuj ponownie.")
-        except (Exception, psycopg2.DatabaseError) as err:
-            print(f"Błąd połączenia z bazą: {err}")
-            return False
-        finally:
-            if conn is not None:
-                conn.close()                        # zamknięcie konektora do bazy
+                result = cur.fetchone()[0]
+                if result != 0:
+                    query = f"UPDATE uzytkownicy SET haslo = \'{hashlib.md5(new_pass.encode('utf-8')).hexdigest()}\' WHERE reset_token = \'{token}\'" # zmień hasło
+                    cur.execute(query)
+                    query = f"UPDATE uzytkownicy SET reset_token = NULL WHERE reset_token = \'{token}\'" # usuń token po wykorzystaniu
+                    cur.execute(query)
+                    conn.commit()
+                    messageBox("Reset hasła pomyślny", QtWidgets.QMessageBox.Information, "Twoje hasło zostało zresetowane.")
+                    self.Dialog.close()
+                else:
+                    messageBox("Reset hasła nie powiódł się", QtWidgets.QMessageBox.Warning, "Niewłaściwy token. Spróbuj ponownie.")
+            except (Exception, psycopg2.DatabaseError) as err:
+                print(f"Błąd połączenia z bazą: {err}")
+                return False
+            finally:
+                if conn is not None:
+                    conn.close()                        # zamknięcie konektora do bazy
+        else:
+            messageBox("Reset hasła nie powiódł się", QtWidgets.QMessageBox.Warning, "Niewłaściwe hasło. Hasło musi mieć minimum 8 znaków, co najmniej jedną literę i jedną cyfrę.")
 
-
-    def messageBox(self, title, icon, text, infoText="", detailText=""):
-        msg = QtWidgets.QMessageBox()
-        msg.setIcon(icon)
-        msg.setText(text)
-        msg.setInformativeText(infoText)
-        msg.setWindowTitle(title)
-        msg.setDetailedText(detailText)
-        msg.exec_()
 
     def show_hide(self):
         
@@ -83,11 +79,6 @@ class Ui_IForgot(object):
         self.frame.hide()
         self.frame_2.show()
         self.frame_2.raise_()
-
-    def validateEmail(self, email):
-        email_regex = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
-
-        return (len(email) != 0 and re.fullmatch(email_regex, email))
 
     def checkEmailInDB(self, email):
         conn = None
@@ -145,9 +136,9 @@ class Ui_IForgot(object):
                 server.login(sender_email, password)
                 server.sendmail(sender_email, receiver_email, message)
                 self.show_hide()
-            self.messageBox("Informacja", QtWidgets.QMessageBox.Information, "Na twój adres e-mail został wysłany token. Sprawdź swoją skrzynkę.")
+            messageBox("Informacja", QtWidgets.QMessageBox.Information, "Na twój adres e-mail został wysłany token. Sprawdź swoją skrzynkę.")
         except Exception:
-            self.messageBox("Błąd systemu", QtWidgets.QMessageBox.Critical, "Połączenie z serwerem e-mail nie działa.")
+            messageBox("Błąd systemu", QtWidgets.QMessageBox.Critical, "Połączenie z serwerem e-mail nie działa.")
 
     def setupUi(self, Dialog):
         Dialog.setObjectName("Dialog")

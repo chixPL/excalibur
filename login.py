@@ -15,6 +15,8 @@ import psycopg2
 
 from config import config
 from iforgot import Ui_IForgot
+from validate import validateEmail
+from messagebox import messageBox
 
 class Ui_LoginWindow(object):
 
@@ -29,15 +31,6 @@ class Ui_LoginWindow(object):
         self.lineEdit.clear()
         self.lineEdit_2.clear()
         self.Form.show()
-
-    def messageBox(self, title, icon, text, infoText="", detailText=""):
-        msg = QtWidgets.QMessageBox()
-        msg.setIcon(icon)
-        msg.setText(text)
-        msg.setInformativeText(infoText)
-        msg.setWindowTitle(title)
-        msg.setDetailedText(detailText)
-        msg.exec_()
 
     def checkLoginData(self, email, haslo):
         conn = None
@@ -59,23 +52,20 @@ class Ui_LoginWindow(object):
             return True
 
     def login(self):
-
-        email_regex = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
-
         email = self.lineEdit.text().lower()
         haslo = self.lineEdit_2.text()
         if len(email) == 0 or len(haslo) == 0:
-            self.messageBox("Logowanie nie powiodło się", QtWidgets.QMessageBox.Warning, "Wpisz adres e-mail i hasło.")
-        elif not re.fullmatch(email_regex, email):
-            self.messageBox("Logowanie nie powiodło się", QtWidgets.QMessageBox.Warning, "Niewłaściwy email. Adres musi zawierać znaki @ i .")
+            messageBox("Logowanie nie powiodło się", QtWidgets.QMessageBox.Warning, "Wpisz adres e-mail i hasło.")
+        elif not validateEmail(email):
+            messageBox("Logowanie nie powiodło się", QtWidgets.QMessageBox.Warning, "Niewłaściwy email. Adres musi zawierać znaki @ i .")
         else:
             haslo_md5 = hashlib.md5(haslo.encode('utf-8')).hexdigest()
             if(self.checkLoginData(email, haslo_md5)):
-                self.messageBox("Logowanie powiodło się!", QtWidgets.QMessageBox.Information, "Zostałeś zalogowany.")
+                messageBox("Logowanie powiodło się!", QtWidgets.QMessageBox.Information, "Zostałeś zalogowany.")
                 self.Form.close()
                 self.main.show_main(email)
             else:
-                self.messageBox("Logowanie nie powiodło się", QtWidgets.QMessageBox.Warning, "Adres e-mail lub hasło jest nieprawidłowe.")
+                messageBox("Logowanie nie powiodło się", QtWidgets.QMessageBox.Warning, "Adres e-mail lub hasło jest nieprawidłowe.")
 
     def setupUi(self, Form):
         Form.setObjectName("Form")

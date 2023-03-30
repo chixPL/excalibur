@@ -13,6 +13,8 @@ import re
 import hashlib
 import psycopg2
 from config import config
+from validate import validateEmail, validatePassword
+from messagebox import messageBox
 
 class Ui_AddUser(object):
 
@@ -21,16 +23,7 @@ class Ui_AddUser(object):
         self.setupUi(self.Dialog)
         self.Dialog.show()
         self.Dialog.exec()
-
-    def messageBox(self, title, icon, text, infoText="", detailText=""):
-        msg = QtWidgets.QMessageBox()
-        msg.setIcon(icon)
-        msg.setText(text)
-        msg.setInformativeText(infoText)
-        msg.setWindowTitle(title)
-        msg.setDetailedText(detailText)
-        msg.exec_()
-
+    
     def checkIfEmailExists(self, email):
         try:
             params = config()                       # wczytujemy paramtery połaczenia z bazą
@@ -49,9 +42,7 @@ class Ui_AddUser(object):
         return result
 
     def addUserFunction(self):
-
-        email_regex = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
-
+        
         imie = self.lineEdit.text()
         nazwisko = self.lineEdit_2.text()
         email = self.lineEdit_3.text()
@@ -59,12 +50,15 @@ class Ui_AddUser(object):
         rola = self.comboBox.currentText()
 
         if '' in [imie, nazwisko, email, haslo, rola]: # jeśli którekolwiek pole jest puste
-            self.messageBox("Błąd", QtWidgets.QMessageBox.Critical, "Puste pola", "Wypełnij wszystkie pola")
-        elif not re.fullmatch(email_regex, email):
-            self.messageBox("Błąd", QtWidgets.QMessageBox.Critical, "Nieprawidłowy adres e-mail", "Wpisz poprawny adres e-mail")
+            messageBox("Błąd", QtWidgets.QMessageBox.Critical, "Puste pola", "Wypełnij wszystkie pola")
+        elif not validateEmail(email):
+            messageBox("Błąd", QtWidgets.QMessageBox.Critical, "Nieprawidłowy adres e-mail", "Wpisz poprawny adres e-mail")
+            return
+        elif not validatePassword(haslo):
+            messageBox("Błąd", QtWidgets.QMessageBox.Critical, "Nieprawidłowe hasło", "Hasło musi zawierać co najmniej 8 znaków, co najmniej jedną literę i jedną cyfrę")
             return
         elif self.checkIfEmailExists(email):
-            self.messageBox("Błąd", QtWidgets.QMessageBox.Critical, "Adres e-mail jest już zajęty", "Użytkownik o podanym adresie e-mail już istnieje")
+            messageBox("Błąd", QtWidgets.QMessageBox.Critical, "Adres e-mail jest już zajęty", "Użytkownik o podanym adresie e-mail już istnieje")
         else:
             try:
                 params = config()                       # wczytujemy paramtery połaczenia z bazą
@@ -73,7 +67,7 @@ class Ui_AddUser(object):
                 query = f"INSERT INTO uzytkownicy(email, haslo, rola, imie, nazwisko) VALUES(\'{email}\', \'{haslo}\', \'{rola}\', \'{imie}\', \'{nazwisko}\')" # query
                 cur.execute(query)
                 conn.commit()
-                self.messageBox("Sukces", QtWidgets.QMessageBox.Information, "Dodano użytkownika", "Użytkownik został pomyślnie dodany do bazy danych.")
+                messageBox("Sukces", QtWidgets.QMessageBox.Information, "Dodano użytkownika", "Użytkownik został pomyślnie dodany do bazy danych.")
 
             except (Exception, psycopg2.DatabaseError) as err:
                 print(f"Błąd połączenia z bazą: {err}")

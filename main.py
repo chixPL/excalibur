@@ -10,7 +10,6 @@ by Jakub Rutkowski (chixPL) 2023
 # Standardowe importy
 
 from PyQt5 import QtCore, QtGui, QtWidgets, QtSql
-import hashlib
 import psycopg2
 from PyQt5.QtWidgets import QTableWidgetItem
 
