@@ -11,7 +11,6 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 import smtplib, ssl
 import psycopg2
-import re
 import hashlib
 from config import config
 from uuid import uuid4

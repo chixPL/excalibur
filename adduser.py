@@ -9,8 +9,6 @@
 
 
 from PyQt5 import QtCore, QtGui, QtWidgets
-import re
-import hashlib
 import psycopg2
 from config import config
 from validate import validateEmail, validatePassword

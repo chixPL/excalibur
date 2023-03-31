@@ -13,6 +13,7 @@ import psycopg2
 import re
 import hashlib
 from config import config
+from messagebox import messageBox
 
 
 class Ui_UpdateUser(object):
@@ -23,15 +24,6 @@ class Ui_UpdateUser(object):
         self.getAllUsers()
         self.Dialog.show()
         self.Dialog.exec_()
-
-    def messageBox(self, title, icon, text, infoText="", detailText=""):
-        msg = QtWidgets.QMessageBox()
-        msg.setIcon(icon)
-        msg.setText(text)
-        msg.setInformativeText(infoText)
-        msg.setWindowTitle(title)
-        msg.setDetailedText(detailText)
-        msg.exec_()
 
     def getAllUsers(self):
         try:
@@ -88,7 +80,7 @@ class Ui_UpdateUser(object):
             cur.execute(query)
             conn.commit()
             self.comboBox_2.setItemText(userid, f"{newUserData['imie']} {newUserData['nazwisko']}") # zmiana nazwy w comboboxie
-            self.messageBox("Sukces", QtWidgets.QMessageBox.Information, "Zmiany zostały zapisane.")
+            messageBox("Sukces", QtWidgets.QMessageBox.Information, "Zmiany zostały zapisane.")
         except (Exception, psycopg2.DatabaseError) as err:
             print(f"Błąd połączenia z bazą: {err}")
             return False
@@ -112,13 +104,13 @@ class Ui_UpdateUser(object):
             newUserData["haslo"] = hashlib.md5(self.lineEdit_4.text().encode('utf-8')).hexdigest()
         
         if tuple(newUserData.values()) == self.userinfo[0]:
-            self.messageBox("Bez zmian", QtWidgets.QMessageBox.Information, "Nie wprowadzono żadnych zmian.")
+            messageBox("Bez zmian", QtWidgets.QMessageBox.Information, "Nie wprowadzono żadnych zmian.")
             return False
         if '' in newUserData.values():
-            self.messageBox("Błąd", QtWidgets.QMessageBox.Critical, "Wypełnij wszystkie pola")
+            messageBox("Błąd", QtWidgets.QMessageBox.Critical, "Wypełnij wszystkie pola")
             return False
         elif not re.fullmatch(email_regex, newUserData["email"]):
-            self.messageBox("Błąd", QtWidgets.QMessageBox.Critical, "Niepoprawny adres email. Adres musi zawierać znak @ i .")
+            messageBox("Błąd", QtWidgets.QMessageBox.Critical, "Niepoprawny adres email. Adres musi zawierać znak @ i .")
             return False
         else:
             #print(newUserData)

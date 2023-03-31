@@ -11,7 +11,7 @@ currentVersion = "0.0.6-dev" # wersja aplikacji
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 import psycopg2
-import datetime
+from datetime import datetime
 from PyQt5.QtWidgets import QTableWidgetItem
 
 # Własne pliki
@@ -349,7 +349,7 @@ class Ui_MainWindow(object):
         # Zegar
         timer = QtCore.QTimer(self.label_4)
         # adding action to timer
-        timer.timeout.connect(lambda: self.label_4.setText(datetime.datetime.now().strftime("%H:%M")))
+        timer.timeout.connect(lambda: self.label_4.setText(datetime.now().strftime("%H:%M")))
         # update the timer every second
         timer.start(60000)
 
@@ -374,7 +374,7 @@ class Ui_MainWindow(object):
         MainWindow.setWindowTitle(_translate("MainWindow", "Dziennik"))
         self.pushButton.setText(_translate("MainWindow", "Dodaj ocenę"))
         self.label.setText(_translate("MainWindow", "Klasa:"))
-        self.label_4.setText(_translate("MainWindow", datetime.datetime.now().strftime("%H:%M")))
+        self.label_4.setText(_translate("MainWindow", datetime.now().strftime("%H:%M")))
         self.pushButton_2.setText(_translate("MainWindow", "Wyloguj się"))
         self.menuPlik.setTitle(_translate("MainWindow", "Plik"))
         self.menuStudent.setTitle(_translate("MainWindow", "Uczeń"))
