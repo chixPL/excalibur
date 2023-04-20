@@ -5,15 +5,13 @@ Excalibur - dziennik szkolny
 by Jakub Rutkowski (chixPL) 2023
 """
 
-currentVersion = "0.0.6-dev" # wersja aplikacji
+currentVersion = "0.0.7-dev" # wersja aplikacji
 
 # Standardowe importy
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 import psycopg2
 from datetime import datetime
-from PyQt5.QtWidgets import QTableWidgetItem
-
 # Własne pliki
 from login import Ui_LoginWindow
 from config import config
@@ -21,6 +19,7 @@ from addnote import Ui_AddNote
 from adduser import Ui_AddUser
 from updateuser import Ui_UpdateUser
 from placeholder import Placeholder
+from addclass import Ui_AddClass
 
 # Naprawa błędu związanego z ikoną aplikacji na Windowsie
 import ctypes
@@ -66,12 +65,18 @@ class Ui_MainWindow(object):
         self.user_role = result[3]
 
         # odpowiednie menu według roli
-        if(self.user_role == 'Uczeń'):
-            self.menuTeacher.menuAction().setVisible(False)
-            self.menuAdmin.menuAction().setVisible(False)
-        elif(self.user_role == 'Nauczyciel'):
-            self.menuAdmin.menuAction().setVisible(False)
-            self.menuStudent.menuAction().setVisible(False)
+        
+        match self.user_role:
+            case 'Nauczyciel':
+                self.menuStudent.menuAction().setVisible(False)
+                self.menuAdmin.menuAction().setVisible(False)
+            case 'Admin':
+                self.menuStudent.menuAction().setVisible(False)
+            case _: # default (student lub nieznana rola)
+                self.menuTeacher.menuAction().setVisible(False)
+                self.menuAdmin.menuAction().setVisible(False)
+
+            
         
         self.label_2.setText(f"Witaj, {self.user_name} {self.user_surname}! | Twoja rola: {self.user_role}")
         self.getClasses()
@@ -140,7 +145,7 @@ class Ui_MainWindow(object):
                 test_ids = [x[1] for x in res]
                 # wstawiaj kolumnami
                 for j in range(0, len(test_ids)):
-                    self.tableWidget.setItem(i, test_ids[j]-1, QTableWidgetItem(grades[j]))
+                    self.tableWidget.setItem(i, test_ids[j]-1, QtWidgets.QTableWidgetItem(grades[j]))
 
                 query = f"SELECT ROUND(AVG(CAST(LEFT(ocena, 1) AS INT)),2) FROM oceny JOIN sprawdziany ON oceny.id_sprawdzianu = sprawdziany.id_sprawdzianu WHERE id_przedmiotu = {class_id} AND id_ucznia = {user_ids[i][0]}" # pobierz średnią ucznia
                 # LEFT bierze pierwszy znak (w średniej plusy/minusy pomijamy) a CAST zmienia varchary na inty
@@ -148,9 +153,8 @@ class Ui_MainWindow(object):
                 cur.execute(query)
                 srednia = cur.fetchone()[0]
                 if srednia is not None:
-                    self.tableWidget.setItem(i, len(test_names)-1, QTableWidgetItem(str(srednia)))
-
-            self.tableWidget.repaint()
+                    self.tableWidget.setItem(i, len(test_names)-1, QtWidgets.QTableWidgetItem(str(srednia)))
+                    
             self.tableWidget.update()
         
         except (Exception, psycopg2.DatabaseError) as err:
@@ -163,11 +167,7 @@ class Ui_MainWindow(object):
 
     def addNote(self):
         class_shortcut = self.comboBox.currentText()
-        ui = Ui_AddNote(class_shortcut)
-        if(ui.refresh == True):
-            # todo: (?) ustawić repaint kiedy widżet nadal jest aktywny, obecnie dopiero po zamknięciu się odświeża
-            self.showData()
-            ui.refresh = False
+        ui = Ui_AddNote(main, class_shortcut)
     
     def addUser(self):
         ui = Ui_AddUser()
@@ -177,6 +177,9 @@ class Ui_MainWindow(object):
 
     def showPlaceholder(self):
         placeholder = Placeholder()
+    
+    def addClass(self):
+        ui = Ui_AddClass()
 
     def logout(self):
         self.MainWindow.hide()
@@ -361,7 +364,7 @@ class Ui_MainWindow(object):
         self.actionChangeUser.triggered.connect(self.updateUser)
         
         # Placeholdery
-        self.actionAddClass.triggered.connect(self.showPlaceholder)
+        self.actionAddClass.triggered.connect(self.addClass)
         self.actionChangeClass.triggered.connect(self.showPlaceholder)
         self.actionAddTest.triggered.connect(self.showPlaceholder)
         self.actionChangeGrade.triggered.connect(self.showPlaceholder)
@@ -396,5 +399,9 @@ if __name__ == "__main__":
     import sys
     app = QtWidgets.QApplication(sys.argv)
     main = Ui_MainWindow()
+    with open("styles/Aqua.qss", "r") as f:
+        style = f.read()
+        app.setStyleSheet(style)
+        f.close()
     lw = Ui_LoginWindow(main)
     sys.exit(app.exec_())

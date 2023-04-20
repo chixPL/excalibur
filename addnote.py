@@ -14,8 +14,8 @@ from config import config
 
 class Ui_AddNote(object):
 
-    def __init__(self, class_shortcut):
-        self.refresh = False
+    def __init__(self, main, class_shortcut):
+        self.main = main
         self.class_shortcut = class_shortcut
         self.params = config()
         self.Dialog = QtWidgets.QDialog()
@@ -80,7 +80,7 @@ class Ui_AddNote(object):
             query = f"INSERT INTO oceny(id_ucznia, id_sprawdzianu, ocena, wartosc) VALUES({student_id}, {test_id}, \'{grade}\', \'{value}\')"
             cur.execute(query)
             conn.commit()
-            self.refresh = True
+            self.main.showData() # odśwież tabelę
             #self.Dialog.close() # zamknij okno
         except (Exception, psycopg2.DatabaseError) as err:
             print(f"Błąd połączenia z bazą: {err}")
