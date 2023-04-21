@@ -66,15 +66,14 @@ class Ui_MainWindow(object):
 
         # odpowiednie menu według roli
         
-        match self.user_role:
-            case 'Nauczyciel':
-                self.menuStudent.menuAction().setVisible(False)
-                self.menuAdmin.menuAction().setVisible(False)
-            case 'Admin':
-                self.menuStudent.menuAction().setVisible(False)
-            case _: # default (student lub nieznana rola)
-                self.menuTeacher.menuAction().setVisible(False)
-                self.menuAdmin.menuAction().setVisible(False)
+        if(self.user_role == 'Nauczyciel'):
+            self.menuStudent.menuAction().setVisible(False)
+            self.menuAdmin.menuAction().setVisible(False)
+        elif(self.user_role == 'Admin'):
+            self.menuStudent.menuAction().setVisible(False)
+        else:
+            self.menuTeacher.menuAction().setVisible(False)
+            self.menuAdmin.menuAction().setVisible(False)
 
             
         
@@ -190,7 +189,7 @@ class Ui_MainWindow(object):
         MainWindow.setObjectName("MainWindow")
         MainWindow.resize(831, 649)
         icon = QtGui.QIcon()
-        icon.addPixmap(QtGui.QPixmap("ui/../images/logo.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon.addPixmap(QtGui.QPixmap("images/logo.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         MainWindow.setWindowIcon(icon)
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
@@ -206,7 +205,7 @@ class Ui_MainWindow(object):
         self.pushButton = QtWidgets.QPushButton(self.centralwidget)
         self.pushButton.setGeometry(QtCore.QRect(700, 580, 121, 25))
         icon1 = QtGui.QIcon()
-        icon1.addPixmap(QtGui.QPixmap("ui/../images/add.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon1.addPixmap(QtGui.QPixmap("images/add.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.pushButton.setIcon(icon1)
         self.pushButton.setIconSize(QtCore.QSize(32, 32))
         self.pushButton.setObjectName("pushButton")
@@ -227,7 +226,7 @@ class Ui_MainWindow(object):
         self.label_3.setMinimumSize(QtCore.QSize(32, 32))
         self.label_3.setMaximumSize(QtCore.QSize(32, 32))
         self.label_3.setText("")
-        self.label_3.setPixmap(QtGui.QPixmap("ui/../images/logo.png"))
+        self.label_3.setPixmap(QtGui.QPixmap("images/logo.png"))
         self.label_3.setScaledContents(True)
         self.label_3.setObjectName("label_3")
         self.horizontalLayout.addWidget(self.label_3)
@@ -266,7 +265,7 @@ class Ui_MainWindow(object):
         font.setPointSize(13)
         self.label_5.setFont(font)
         self.label_5.setText("")
-        self.label_5.setPixmap(QtGui.QPixmap("ui/../images/time.png"))
+        self.label_5.setPixmap(QtGui.QPixmap("images/time.png"))
         self.label_5.setScaledContents(True)
         self.label_5.setObjectName("label_5")
         self.horizontalLayout.addWidget(self.label_5)
