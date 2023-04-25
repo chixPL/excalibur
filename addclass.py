@@ -107,7 +107,8 @@ class Ui_ChooseStudents(object):
 
 class Ui_AddClass(object):
 
-    def __init__(self):
+    def __init__(self, main):
+        self.main = main
         Dialog = QtWidgets.QDialog()
         self.selected = []
         self.Dialog = Dialog
@@ -121,22 +122,42 @@ class Ui_AddClass(object):
         self.label_6.setText("Wybrano " + str(len(self.selected)) + " uczniów")
 
     def saveChanges(self):
-        if(self.num == 0 or self.lineEdit.text == '' or self.lineEdit_2.text() == ''):
-            messageBox("Błąd", QtWidgets.QMessageBox.Warning, "Nie można dodać przedmiotu", "Nie podano wybrano żadnych uczniów")
+        if(len(self.selected) == 0 or self.lineEdit.text == '' or self.lineEdit_2.text() == ''):
+            messageBox("Błąd", QtWidgets.QMessageBox.Warning, "Nie można dodać przedmiotu", "Nie podano nazwy lub skrótu klasy lub nie wybrano żadnych uczniów")
         else:
-            print("Zapisano zmiany")
-
+            id_nauczyciela = self.rows[self.comboBox.currentIndex()][0]
+            try:
+                conn = None
+                params = config()
+                conn = psycopg2.connect(**params)
+                cur = conn.cursor()
+                sql = f"INSERT INTO przedmioty (skrot_przedmiotu, nazwa_przedmiotu, id_nauczyciela) VALUES ('{self.lineEdit.text()}', '{self.lineEdit_2.text()}', {id_nauczyciela}) RETURNING id_przedmiotu"
+                cur.execute(sql)
+                id_przedmiotu = cur.fetchone()[0]
+                for i in self.selected:
+                    sql = f"INSERT INTO uzytkownicy_przedmioty (id_uzytkownika, id_przedmiotu) VALUES ({i}, {id_przedmiotu})"
+                    cur.execute(sql)
+                    conn.commit()
+            except (psycopg2.DatabaseError, Exception) as e:
+                print(f"Błąd połączenia z bazą: {e}")
+            finally:
+                if conn is not None:
+                    conn.close()
+                messageBox("Sukces", QtWidgets.QMessageBox.Information, "Dodano przedmiot", "Przedmiot został dodany do bazy danych.")
+                self.Dialog.close()
+                self.main.getClasses()
     def setupUi(self, Dialog):
         Dialog.setObjectName("Dialog")
-        Dialog.resize(466, 320)
+        Dialog.resize(471, 379)
         self.label = QtWidgets.QLabel(Dialog)
-        self.label.setGeometry(QtCore.QRect(130, 10, 211, 31))
+        self.label.setGeometry(QtCore.QRect(10, 10, 451, 31))
         font = QtGui.QFont()
         font.setPointSize(20)
         self.label.setFont(font)
+        self.label.setAlignment(QtCore.Qt.AlignCenter)
         self.label.setObjectName("label")
         self.layoutWidget = QtWidgets.QWidget(Dialog)
-        self.layoutWidget.setGeometry(QtCore.QRect(11, 51, 441, 251))
+        self.layoutWidget.setGeometry(QtCore.QRect(6, 52, 461, 301))
         self.layoutWidget.setObjectName("layoutWidget")
         self.verticalLayout = QtWidgets.QVBoxLayout(self.layoutWidget)
         self.verticalLayout.setContentsMargins(0, 0, 0, 0)
@@ -157,6 +178,12 @@ class Ui_AddClass(object):
         self.lineEdit.setEchoMode(QtWidgets.QLineEdit.Normal)
         self.lineEdit.setObjectName("lineEdit")
         self.verticalLayout.addWidget(self.lineEdit)
+        self.label_8 = QtWidgets.QLabel(self.layoutWidget)
+        self.label_8.setObjectName("label_8")
+        self.verticalLayout.addWidget(self.label_8)
+        self.comboBox = QtWidgets.QComboBox(self.layoutWidget)
+        self.comboBox.setObjectName("comboBox")
+        self.verticalLayout.addWidget(self.comboBox)
         self.horizontalLayout = QtWidgets.QHBoxLayout()
         self.horizontalLayout.setObjectName("horizontalLayout")
         self.label_6 = QtWidgets.QLabel(self.layoutWidget)
@@ -170,8 +197,26 @@ class Ui_AddClass(object):
         self.pushButton.setObjectName("pushButton")
         self.verticalLayout.addWidget(self.pushButton)
         # Mój kod
+
         self.pushButton.clicked.connect(self.saveChanges)
         self.pushButton_2.clicked.connect(self.chooseStudents)
+
+        self.teacher_ids = []
+        conn = None
+        params = config()
+        try:
+            conn = psycopg2.connect(**params)
+            cur = conn.cursor()
+            cur.execute("SELECT id_uzytkownika, CONCAT_WS(' ', imie, nazwisko) FROM uzytkownicy WHERE rola = 'Nauczyciel' ORDER BY id_uzytkownika")
+            self.rows = cur.fetchall()
+            for row in self.rows:
+                self.comboBox.addItem(str(row[1]))
+            conn.close()
+        except (Exception, psycopg2.DatabaseError) as error:
+            messageBox("Błąd", QtWidgets.QMessageBox.Warning, "Nie można pobrać danych", str(error))
+        finally:
+            if conn is not None:
+                conn.close()
 
         self.retranslateUi(Dialog)
         QtCore.QMetaObject.connectSlotsByName(Dialog)
@@ -182,6 +227,7 @@ class Ui_AddClass(object):
         self.label.setText(_translate("Dialog", "Dodawanie klasy"))
         self.label_7.setText(_translate("Dialog", "Pełna nazwa klasy"))
         self.label_5.setText(_translate("Dialog", "Skrót klasy"))
+        self.label_8.setText(_translate("Dialog", "Nauczyciel"))
         self.label_6.setText(_translate("Dialog", "Wybrano 0 uczniów"))
         self.pushButton_2.setText(_translate("Dialog", "Wybierz uczniów"))
         self.pushButton.setText(_translate("Dialog", "Dodaj klasę"))

@@ -22,10 +22,10 @@ from placeholder import Placeholder
 from addclass import Ui_AddClass
 
 # Naprawa błędu związanego z ikoną aplikacji na Windowsie
-import ctypes
+from ctypes import windll
 myappid = 'chix.pyqt.excalibur.v' + currentVersion
 try:
-    ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
+    windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
 except AttributeError: # Ubuntu, macOS
     pass
 
@@ -34,6 +34,7 @@ class Ui_MainWindow(object):
     def __init__(self):
         global currentVersion
         self.currentVersion = currentVersion
+        self.first_init = True
 
         MainWindow = QtWidgets.QMainWindow()
         self.MainWindow = MainWindow
@@ -74,18 +75,20 @@ class Ui_MainWindow(object):
         else:
             self.menuTeacher.menuAction().setVisible(False)
             self.menuAdmin.menuAction().setVisible(False)
-
-            
         
         self.label_2.setText(f"Witaj, {self.user_name} {self.user_surname}! | Twoja rola: {self.user_role}")
         self.getClasses()
 
     def getClasses(self):
+        self.comboBox.clear()
         conn = None
         try:
             conn = psycopg2.connect(**self.params)       # łączenie z bazą
             cur = conn.cursor()                     # tworzenie kursora do bazy
-            query = f"SELECT skrot_przedmiotu FROM przedmioty INNER JOIN uzytkownicy ON przedmioty.id_nauczyciela = uzytkownicy.id_uzytkownika WHERE id_nauczyciela = {self.user_id} ORDER BY id_przedmiotu" # query
+            if(self.user_role == 'Nauczyciel'):
+                query = f"SELECT skrot_przedmiotu FROM przedmioty INNER JOIN uzytkownicy ON przedmioty.id_nauczyciela = uzytkownicy.id_uzytkownika WHERE id_nauczyciela = {self.user_id} ORDER BY id_przedmiotu" # query
+            else: # admin view
+                query = f"SELECT skrot_przedmiotu FROM przedmioty ORDER BY id_przedmiotu" # query
             cur.execute(query)
             results = cur.fetchall()
         except (Exception, psycopg2.DatabaseError) as err:
@@ -94,13 +97,15 @@ class Ui_MainWindow(object):
         finally:
             if conn is not None:
                 conn.close()                        # zamknięcie konektora do bazy
-        
         for i in results:
             self.comboBox.addItem(i[0])
+        self.showData()
 
     def showData(self):
+        if(self.first_init == True): # nie startuj przy currentTextChanged na inicie
+            self.first_init = False
+            return
         self.tableWidget.clear()
-
         class_shortcut = self.comboBox.currentText()
         # Pobierz nazwy sprawdzianów i uczniów
         conn = None
@@ -148,11 +153,12 @@ class Ui_MainWindow(object):
 
                 query = f"SELECT ROUND(AVG(CAST(LEFT(ocena, 1) AS INT)),2) FROM oceny JOIN sprawdziany ON oceny.id_sprawdzianu = sprawdziany.id_sprawdzianu WHERE id_przedmiotu = {class_id} AND id_ucznia = {user_ids[i][0]}" # pobierz średnią ucznia
                 # LEFT bierze pierwszy znak (w średniej plusy/minusy pomijamy) a CAST zmienia varchary na inty
-                
                 cur.execute(query)
                 srednia = cur.fetchone()[0]
                 if srednia is not None:
                     self.tableWidget.setItem(i, len(test_names)-1, QtWidgets.QTableWidgetItem(str(srednia)))
+                else:
+                    self.tableWidget.setItem(i, len(test_names)-1, QtWidgets.QTableWidgetItem('0.00'))
                     
             self.tableWidget.update()
         
@@ -178,7 +184,7 @@ class Ui_MainWindow(object):
         placeholder = Placeholder()
     
     def addClass(self):
-        ui = Ui_AddClass()
+        ui = Ui_AddClass(main)
 
     def logout(self):
         self.MainWindow.hide()
