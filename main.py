@@ -20,6 +20,7 @@ from adduser import Ui_AddUser
 from updateuser import Ui_UpdateUser
 from placeholder import Placeholder
 from addclass import Ui_AddClass
+from updateclass import Ui_UpdateClass
 
 # Naprawa błędu związanego z ikoną aplikacji na Windowsie
 from ctypes import windll
@@ -185,6 +186,9 @@ class Ui_MainWindow(object):
     
     def addClass(self):
         ui = Ui_AddClass(main)
+
+    def updateClass(self):
+        ui = Ui_UpdateClass()
 
     def logout(self):
         self.MainWindow.hide()
@@ -370,7 +374,7 @@ class Ui_MainWindow(object):
         
         # Placeholdery
         self.actionAddClass.triggered.connect(self.addClass)
-        self.actionChangeClass.triggered.connect(self.showPlaceholder)
+        self.actionChangeClass.triggered.connect(self.updateClass)
         self.actionAddTest.triggered.connect(self.showPlaceholder)
         self.actionChangeGrade.triggered.connect(self.showPlaceholder)
 

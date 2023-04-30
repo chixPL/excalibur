@@ -16,11 +16,15 @@ from config import config
 class Ui_ChooseStudents(object):
 
     def __init__(self):
+        self.selected = []
         Dialog = QtWidgets.QDialog()
         self.Dialog = Dialog
         self.setupUi(self.Dialog)
-        Dialog.show()
-        Dialog.exec_()
+        self.show()
+
+    def show(self):
+        self.Dialog.show()
+        self.Dialog.exec_()
 
     def updateLabel(self):
         self.num = 0
@@ -30,7 +34,6 @@ class Ui_ChooseStudents(object):
         self.label.setText("Wybrano " + str(self.num) + " uczniów")
     
     def saveChanges(self):
-        self.selected = []
         if(self.num == 0):
             messageBox("Błąd", QtWidgets.QMessageBox.Warning, "Nie można dodać klasy", "Nie wybrano żadnych uczniów")
         else:
@@ -38,6 +41,36 @@ class Ui_ChooseStudents(object):
                 if(self.tableWidget.cellWidget(i, 1).isChecked()):
                     self.selected.append(self.rows[i][0])
             self.Dialog.close()
+    
+    def preselectCheckBoxes(self, user_list):
+        for i in range(0, len(user_list)):
+            for j in range(0, self.tableWidget.rowCount()):
+                if(self.rows[j][0] == user_list[i]):
+                    self.tableWidget.cellWidget(j, 1).setChecked(True)
+
+    def fillData(self):
+        self.tableWidget.setColumnCount(2)
+        self.tableWidget.verticalHeader().setVisible(False)
+        self.tableWidget.setHorizontalHeaderLabels(["Uczeń", "Dodaj?"])
+        conn = None
+        params = config()
+        try:
+            conn = psycopg2.connect(**params)
+            cur = conn.cursor()
+            cur.execute("SELECT id_uzytkownika, CONCAT_WS(' ', imie, nazwisko) FROM uzytkownicy WHERE rola = 'Uczeń'")
+            self.rows = cur.fetchall()
+            self.tableWidget.setRowCount(len(self.rows))
+            checkboxes = []
+            for i in range(len(self.rows)):
+                self.tableWidget.setItem(i, 0, QtWidgets.QTableWidgetItem(self.rows[i][1]))
+                checkboxes.append(QtWidgets.QCheckBox())
+                self.tableWidget.setCellWidget(i, 1, checkboxes[i])
+                self.tableWidget.resizeColumnsToContents()
+        except (Exception, psycopg2.DatabaseError) as e:
+            print(f"Błąd połączenia z bazą: {e}")
+
+        for i in range(0, len(checkboxes)):
+            checkboxes[i].stateChanged.connect(self.updateLabel)
             
 
     def setupUi(self, Dialog):
@@ -69,30 +102,8 @@ class Ui_ChooseStudents(object):
         # Mój kod
 
         Dialog.setStyleSheet("QCheckBox{ text-align: center; margin-left:50%; margin-right:50%; }")
+        self.fillData()
 
-        self.tableWidget.setColumnCount(2)
-        self.tableWidget.verticalHeader().setVisible(False)
-        self.tableWidget.setHorizontalHeaderLabels(["Uczeń", "Dodaj?"])
-        conn = None
-        params = config()
-        try:
-            conn = psycopg2.connect(**params)
-            cur = conn.cursor()
-            cur.execute("SELECT id_uzytkownika, CONCAT_WS(' ', imie, nazwisko) FROM uzytkownicy WHERE rola = 'Uczeń'")
-            self.rows = cur.fetchall()
-            self.tableWidget.setRowCount(len(self.rows))
-            checkboxes = []
-            for i in range(len(self.rows)):
-                self.tableWidget.setItem(i, 0, QtWidgets.QTableWidgetItem(self.rows[i][1]))
-                checkboxes.append(QtWidgets.QCheckBox())
-                self.tableWidget.setCellWidget(i, 1, checkboxes[i])
-                self.tableWidget.resizeColumnsToContents()
-        except (Exception, psycopg2.DatabaseError) as e:
-            print(f"Błąd połączenia z bazą: {e}")
-
-        for i in range(0, len(checkboxes)):
-            checkboxes[i].stateChanged.connect(self.updateLabel)
-            
         self.retranslateUi(Dialog)
         self.buttonBox.accepted.connect(self.saveChanges) # type: ignore
         self.buttonBox.rejected.connect(Dialog.reject) # type: ignore
@@ -118,6 +129,7 @@ class Ui_AddClass(object):
 
     def chooseStudents(self):
         picker = Ui_ChooseStudents()
+        picker.show()
         self.selected = picker.selected
         self.label_6.setText("Wybrano " + str(len(self.selected)) + " uczniów")
 
