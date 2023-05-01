@@ -11,12 +11,12 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 import psycopg2
 from config import config
+from messagebox import messageBox
 
 class Ui_AddNote(object):
 
-    def __init__(self, main, class_shortcut):
+    def __init__(self, main):
         self.main = main
-        self.class_shortcut = class_shortcut
         self.params = config()
         self.Dialog = QtWidgets.QDialog()
         self.setupUi(self.Dialog)
@@ -25,21 +25,17 @@ class Ui_AddNote(object):
 
 
     def fillComboBoxes(self):
-        self.label_5.setText("Przedmiot: " + self.class_shortcut)
+        self.label_5.setText("Przedmiot: " + self.main.class_shortcut)
 
         try:
             conn = psycopg2.connect(**self.params)
             cur = conn.cursor()                     # tworzenie kursora do bazy
 
-            query = f"SELECT id_przedmiotu FROM przedmioty WHERE skrot_przedmiotu = \'{self.class_shortcut}\'"
-            cur.execute(query)
-            class_id = cur.fetchone()[0]
-
-            query = f"SELECT CONCAT_WS(' ', imie, nazwisko)  FROM uzytkownicy_przedmioty INNER JOIN uzytkownicy ON uzytkownicy_przedmioty.id_uzytkownika = uzytkownicy.id_uzytkownika WHERE uzytkownicy_przedmioty.id_przedmiotu = {class_id} ORDER BY uzytkownicy.id_uzytkownika" # pobierz nazwy uczniów
+            query = f"SELECT CONCAT_WS(' ', imie, nazwisko)  FROM uzytkownicy_przedmioty INNER JOIN uzytkownicy ON uzytkownicy_przedmioty.id_uzytkownika = uzytkownicy.id_uzytkownika WHERE uzytkownicy_przedmioty.id_przedmiotu = {self.main.class_id} ORDER BY uzytkownicy.id_uzytkownika" # pobierz nazwy uczniów
             cur.execute(query)
             user_names = cur.fetchall()
 
-            query = f"SELECT skrot_sprawdzianu FROM sprawdziany INNER JOIN przedmioty ON sprawdziany.id_przedmiotu=przedmioty.id_przedmiotu WHERE sprawdziany.id_przedmiotu = {class_id} ORDER BY sprawdziany.id_sprawdzianu" # pobierz nazwy sprawdzianów
+            query = f"SELECT skrot_sprawdzianu FROM sprawdziany INNER JOIN przedmioty ON sprawdziany.id_przedmiotu=przedmioty.id_przedmiotu WHERE sprawdziany.id_przedmiotu = {self.main.class_id} ORDER BY sprawdziany.id_sprawdzianu" # pobierz nazwy sprawdzianów
             cur.execute(query)
             test_names = cur.fetchall()
 
@@ -77,10 +73,17 @@ class Ui_AddNote(object):
             cur.execute(query)
             student_id = cur.fetchone()[0]
 
-            query = f"INSERT INTO oceny(id_ucznia, id_sprawdzianu, ocena, wartosc) VALUES({student_id}, {test_id}, \'{grade}\', \'{value}\')"
+            query = f"SELECT COUNT(id_oceny) FROM oceny WHERE id_ucznia = {student_id} AND id_sprawdzianu = {test_id}"
             cur.execute(query)
-            conn.commit()
-            self.main.showData() # odśwież tabelę
+            count = cur.fetchone()[0]
+            if count > 0:
+                messageBox("Błąd", QtWidgets.QMessageBox.Critical, "Uczeń ma już ocenę z tego sprawdzianu.")
+                
+            else:
+                query = f"INSERT INTO oceny(id_ucznia, id_sprawdzianu, ocena, wartosc) VALUES({student_id}, {test_id}, \'{grade}\', \'{value}\')"
+                cur.execute(query)
+                conn.commit()
+                self.main.showData() # odśwież tabelę
             #self.Dialog.close() # zamknij okno
         except (Exception, psycopg2.DatabaseError) as err:
             print(f"Błąd połączenia z bazą: {err}")

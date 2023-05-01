@@ -18,7 +18,8 @@ from messagebox import messageBox
 
 class Ui_UpdateUser(object):
 
-    def __init__(self):
+    def __init__(self, main):
+        self.main = main
         self.Dialog = QtWidgets.QDialog()
         self.setupUi(self.Dialog)
         self.getAllUsers()
@@ -81,6 +82,7 @@ class Ui_UpdateUser(object):
             conn.commit()
             self.comboBox_2.setItemText(userid, f"{newUserData['imie']} {newUserData['nazwisko']}") # zmiana nazwy w comboboxie
             messageBox("Sukces", QtWidgets.QMessageBox.Information, "Zmiany zostały zapisane.")
+            self.main.getUserData()
         except (Exception, psycopg2.DatabaseError) as err:
             print(f"Błąd połączenia z bazą: {err}")
             return False

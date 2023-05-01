@@ -21,6 +21,7 @@ from updateuser import Ui_UpdateUser
 from placeholder import Placeholder
 from addclass import Ui_AddClass
 from updateclass import Ui_UpdateClass
+from updatenote import Ui_UpdateNote
 
 # Naprawa błędu związanego z ikoną aplikacji na Windowsie
 from ctypes import windll
@@ -107,7 +108,7 @@ class Ui_MainWindow(object):
             self.first_init = False
             return
         self.tableWidget.clear()
-        class_shortcut = self.comboBox.currentText()
+        self.class_shortcut = self.comboBox.currentText()
         # Pobierz nazwy sprawdzianów i uczniów
         conn = None
         try:
@@ -116,19 +117,19 @@ class Ui_MainWindow(object):
 
             #todo: refactor do executemany(), na razie zostaje w ten sposób dla przejrzystości
 
-            query = f"SELECT id_przedmiotu FROM przedmioty WHERE skrot_przedmiotu = \'{class_shortcut}\'" # pobierz ID klasy
+            query = f"SELECT id_przedmiotu FROM przedmioty WHERE skrot_przedmiotu = \'{self.class_shortcut}\'" # pobierz ID klasy
             cur.execute(query)
-            class_id = cur.fetchone()[0]
+            self.class_id = cur.fetchone()[0]
 
-            query = f"SELECT id_uzytkownika FROM uzytkownicy_przedmioty WHERE id_przedmiotu = {class_id} ORDER BY id_uzytkownika" # pobierz ID uczniów którzy się uczą w danej klasie
+            query = f"SELECT id_uzytkownika FROM uzytkownicy_przedmioty WHERE id_przedmiotu = {self.class_id} ORDER BY id_uzytkownika" # pobierz ID uczniów którzy się uczą w danej klasie
             cur.execute(query)
             user_ids = cur.fetchall()
 
-            query = f"SELECT CONCAT_WS(' ', imie, nazwisko)  FROM uzytkownicy_przedmioty INNER JOIN uzytkownicy ON uzytkownicy_przedmioty.id_uzytkownika = uzytkownicy.id_uzytkownika WHERE uzytkownicy_przedmioty.id_przedmiotu = {class_id} ORDER BY uzytkownicy.id_uzytkownika" # pobierz nazwy uczniów
+            query = f"SELECT CONCAT_WS(' ', imie, nazwisko)  FROM uzytkownicy_przedmioty INNER JOIN uzytkownicy ON uzytkownicy_przedmioty.id_uzytkownika = uzytkownicy.id_uzytkownika WHERE uzytkownicy_przedmioty.id_przedmiotu = {self.class_id} ORDER BY uzytkownicy.id_uzytkownika" # pobierz nazwy uczniów
             cur.execute(query)
             user_names = cur.fetchall()
 
-            query = f"SELECT skrot_sprawdzianu FROM sprawdziany INNER JOIN przedmioty ON sprawdziany.id_przedmiotu=przedmioty.id_przedmiotu WHERE sprawdziany.id_przedmiotu = {class_id} ORDER BY id_sprawdzianu" # pobierz nazwy sprawdzianów
+            query = f"SELECT skrot_sprawdzianu FROM sprawdziany INNER JOIN przedmioty ON sprawdziany.id_przedmiotu=przedmioty.id_przedmiotu WHERE sprawdziany.id_przedmiotu = {self.class_id} ORDER BY id_sprawdzianu" # pobierz nazwy sprawdzianów
             cur.execute(query)
             test_names = cur.fetchall()
 
@@ -152,7 +153,7 @@ class Ui_MainWindow(object):
                 for j in range(0, len(test_ids)):
                     self.tableWidget.setItem(i, test_ids[j]-1, QtWidgets.QTableWidgetItem(grades[j]))
 
-                query = f"SELECT ROUND(AVG(CAST(LEFT(ocena, 1) AS INT)),2) FROM oceny JOIN sprawdziany ON oceny.id_sprawdzianu = sprawdziany.id_sprawdzianu WHERE id_przedmiotu = {class_id} AND id_ucznia = {user_ids[i][0]}" # pobierz średnią ucznia
+                query = f"SELECT ROUND(AVG(CAST(LEFT(ocena, 1) AS INT)),2) FROM oceny JOIN sprawdziany ON oceny.id_sprawdzianu = sprawdziany.id_sprawdzianu WHERE id_przedmiotu = {self.class_id} AND id_ucznia = {user_ids[i][0]}" # pobierz średnią ucznia
                 # LEFT bierze pierwszy znak (w średniej plusy/minusy pomijamy) a CAST zmienia varchary na inty
                 cur.execute(query)
                 srednia = cur.fetchone()[0]
@@ -172,14 +173,13 @@ class Ui_MainWindow(object):
                 conn.close()                        # zamknięcie konektora do bazy
 
     def addNote(self):
-        class_shortcut = self.comboBox.currentText()
-        ui = Ui_AddNote(main, class_shortcut)
+        ui = Ui_AddNote(main)
     
     def addUser(self):
         ui = Ui_AddUser()
     
     def updateUser(self):
-        ui = Ui_UpdateUser()
+        ui = Ui_UpdateUser(main)
 
     def showPlaceholder(self):
         placeholder = Placeholder()
@@ -188,7 +188,10 @@ class Ui_MainWindow(object):
         ui = Ui_AddClass(main)
 
     def updateClass(self):
-        ui = Ui_UpdateClass()
+        ui = Ui_UpdateClass(main)
+
+    def updateNote(self):
+        ui = Ui_UpdateNote(main)
 
     def logout(self):
         self.MainWindow.hide()
@@ -376,7 +379,7 @@ class Ui_MainWindow(object):
         self.actionAddClass.triggered.connect(self.addClass)
         self.actionChangeClass.triggered.connect(self.updateClass)
         self.actionAddTest.triggered.connect(self.showPlaceholder)
-        self.actionChangeGrade.triggered.connect(self.showPlaceholder)
+        self.actionChangeGrade.triggered.connect(self.updateNote)
 
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)

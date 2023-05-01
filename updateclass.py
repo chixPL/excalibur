@@ -16,7 +16,8 @@ from addclass import Ui_ChooseStudents
 
 class Ui_UpdateClass(object):
 
-    def __init__(self):
+    def __init__(self, main):
+        self.main = main
         self.index = None
         Dialog = QtWidgets.QDialog()
         self.setupUi(Dialog)
@@ -47,6 +48,7 @@ class Ui_UpdateClass(object):
             if conn is not None:
                 conn.close()
         self.getClassData() # first init
+        self.main.getClasses()
 
     def getClassData(self):
         conn = None 
