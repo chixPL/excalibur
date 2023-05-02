@@ -11,6 +11,7 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 import hashlib
 import psycopg2
+from functools import lru_cache
 
 from config import config
 from iforgot import Ui_IForgot
@@ -20,11 +21,39 @@ from messagebox import messageBox
 class Ui_LoginWindow(object):
 
     def __init__(self, main):
-        self.main = main
-        Form = QtWidgets.QWidget()
-        self.Form = Form
-        self.setupUi(Form)
-        self.clear_show()
+        
+        self.isDBOkay = self.checkDBConnection()
+        if not self.isDBOkay:
+            messageBox("Błąd połączenia z bazą danych", QtWidgets.QMessageBox.Critical, "Błąd połączenia z bazą danych", "Nie udało się połączyć z bazą danych. Sprawdź konfigurację database.ini. Jeżeli uruchamiasz Excalibura po raz pierwszy, uruchom najpierw setup.py")
+            exit()
+        else:
+            self.main = main
+            Form = QtWidgets.QWidget()
+            self.Form = Form
+            self.setupUi(Form)
+            self.clear_show()
+
+    @lru_cache(maxsize=1)
+    def checkDBConnection(self):
+        conn = None
+        try:
+            params = config()
+        except Exception:
+            return False
+        try:
+            conn = psycopg2.connect(**params)
+            cur = conn.cursor()
+            cur.execute("SELECT COUNT(*) FROM uzytkownicy")
+            result = cur.fetchone()
+            if result[0] > 0:
+                return True
+            else:
+                return False
+        except (Exception, psycopg2.DatabaseError) as e:
+            return False
+        finally:
+            if conn is not None:
+                conn.close()
 
     def clear_show(self):
         self.lineEdit.clear()
@@ -62,6 +91,7 @@ class Ui_LoginWindow(object):
             if(self.checkLoginData(email, haslo_md5)):
                 messageBox("Logowanie powiodło się!", QtWidgets.QMessageBox.Information, "Zostałeś zalogowany.")
                 self.Form.close()
+                self.main.params = config()
                 self.main.show_main(email)
             else:
                 messageBox("Logowanie nie powiodło się", QtWidgets.QMessageBox.Warning, "Adres e-mail lub hasło jest nieprawidłowe.")

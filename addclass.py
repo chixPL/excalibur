@@ -20,7 +20,6 @@ class Ui_ChooseStudents(object):
         Dialog = QtWidgets.QDialog()
         self.Dialog = Dialog
         self.setupUi(self.Dialog)
-        self.show()
 
     def show(self):
         self.Dialog.show()
@@ -143,21 +142,26 @@ class Ui_AddClass(object):
                 params = config()
                 conn = psycopg2.connect(**params)
                 cur = conn.cursor()
-                sql = f"INSERT INTO przedmioty (skrot_przedmiotu, nazwa_przedmiotu, id_nauczyciela) VALUES ('{self.lineEdit.text()}', '{self.lineEdit_2.text()}', {id_nauczyciela}) RETURNING id_przedmiotu"
+                sql = f"SELECT COUNT(*) FROM przedmioty WHERE skrot_przedmiotu = '{self.lineEdit.text()}' OR nazwa_przedmiotu = '{self.lineEdit_2.text()}'"
                 cur.execute(sql)
-                id_przedmiotu = cur.fetchone()[0]
-                for i in self.selected:
-                    sql = f"INSERT INTO uzytkownicy_przedmioty (id_uzytkownika, id_przedmiotu) VALUES ({i}, {id_przedmiotu})"
+                if(cur.fetchone()[0] > 0):
+                    messageBox("Błąd", QtWidgets.QMessageBox.Warning, "Nie można dodać przedmiotu", "Przedmiot o podanej nazwie lub skrócie już istnieje")
+                else:
+                    sql = f"INSERT INTO przedmioty (skrot_przedmiotu, nazwa_przedmiotu, id_nauczyciela) VALUES ('{self.lineEdit.text()}', '{self.lineEdit_2.text()}', {id_nauczyciela}) RETURNING id_przedmiotu"
                     cur.execute(sql)
-                    conn.commit()
+                    id_przedmiotu = cur.fetchone()[0]
+                    for i in self.selected:
+                        sql = f"INSERT INTO uzytkownicy_przedmioty (id_uzytkownika, id_przedmiotu) VALUES ({i}, {id_przedmiotu})"
+                        cur.execute(sql)
+                        conn.commit()
+                    messageBox("Sukces", QtWidgets.QMessageBox.Information, "Dodano przedmiot", "Przedmiot został dodany do bazy danych.")
+                    self.Dialog.close()
+                    self.main.getClasses()
             except (psycopg2.DatabaseError, Exception) as e:
                 print(f"Błąd połączenia z bazą: {e}")
             finally:
                 if conn is not None:
                     conn.close()
-                messageBox("Sukces", QtWidgets.QMessageBox.Information, "Dodano przedmiot", "Przedmiot został dodany do bazy danych.")
-                self.Dialog.close()
-                self.main.getClasses()
     def setupUi(self, Dialog):
         Dialog.setObjectName("Dialog")
         Dialog.resize(471, 379)

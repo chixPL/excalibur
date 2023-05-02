@@ -16,7 +16,8 @@ from messagebox import messageBox
 
 class Ui_AddUser(object):
 
-    def __init__(self):
+    def __init__(self, main):
+        self.main = main
         self.Dialog = QtWidgets.QDialog()
         self.setupUi(self.Dialog)
         self.Dialog.show()
@@ -38,6 +39,12 @@ class Ui_AddUser(object):
                 conn.close()                        # zamknięcie konektora do bazy
         
         return result
+
+    def clearAllInputs(self):
+        self.lineEdit.clear()
+        self.lineEdit_2.clear()
+        self.lineEdit_3.clear()
+        self.lineEdit_4.clear()
 
     def addUserFunction(self):
         
@@ -66,6 +73,8 @@ class Ui_AddUser(object):
                 cur.execute(query)
                 conn.commit()
                 messageBox("Sukces", QtWidgets.QMessageBox.Information, "Dodano użytkownika", "Użytkownik został pomyślnie dodany do bazy danych.")
+                self.clearAllInputs()
+                self.main.showData()
 
             except (Exception, psycopg2.DatabaseError) as err:
                 print(f"Błąd połączenia z bazą: {err}")

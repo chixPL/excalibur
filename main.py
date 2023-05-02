@@ -5,13 +5,14 @@ Excalibur - dziennik szkolny
 by Jakub Rutkowski (chixPL) 2023
 """
 
-currentVersion = "0.0.7-dev" # wersja aplikacji
+currentVersion = "0.0.8-dev" # wersja aplikacji
 
 # Standardowe importy
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 import psycopg2
 from datetime import datetime
+from functools import lru_cache
 # Własne pliki
 from login import Ui_LoginWindow
 from config import config
@@ -22,6 +23,7 @@ from placeholder import Placeholder
 from addclass import Ui_AddClass
 from updateclass import Ui_UpdateClass
 from updatenote import Ui_UpdateNote
+from messagebox import messageBox
 
 # Naprawa błędu związanego z ikoną aplikacji na Windowsie
 from ctypes import windll
@@ -37,16 +39,21 @@ class Ui_MainWindow(object):
         global currentVersion
         self.currentVersion = currentVersion
         self.first_init = True
+        self.sawIntro = False # czy użytkownik widział intro
 
         MainWindow = QtWidgets.QMainWindow()
         self.MainWindow = MainWindow
         self.setupUi(MainWindow)
-        self.params = config()
-    
+
     def show_main(self, email):
         self.MainWindow.show() # startuj UI
         self.getUserInfo(email) # startuj kod
 
+    def intro(self):
+        if self.sawIntro == False:
+            messageBox("Informacja", QtWidgets.QMessageBox.Information, "Witamy w Excaliburze!", "Aby rozpocząć, dodaj przynajmniej jednego nauczyciela, jedną klasę i jednego ucznia za pomocą menu admina.")
+            self.sawIntro = True
+    
     def getUserInfo(self, email):
         conn = None
         try:                    # wczytujemy paramtery połaczenia z bazą
@@ -101,7 +108,13 @@ class Ui_MainWindow(object):
                 conn.close()                        # zamknięcie konektora do bazy
         for i in results:
             self.comboBox.addItem(i[0])
-        self.showData()
+        if len(results) == 0:
+            self.comboBox.addItem("Brak klas")
+            self.comboBox.setDisabled(True)
+            self.intro()
+        else:
+            self.comboBox.setDisabled(False)
+            self.showData()
 
     def showData(self):
         if(self.first_init == True): # nie startuj przy currentTextChanged na inicie
@@ -176,7 +189,7 @@ class Ui_MainWindow(object):
         ui = Ui_AddNote(main)
     
     def addUser(self):
-        ui = Ui_AddUser()
+        ui = Ui_AddUser(main)
     
     def updateUser(self):
         ui = Ui_UpdateUser(main)
