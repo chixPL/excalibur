@@ -19,10 +19,10 @@ from config import config
 from addnote import Ui_AddNote
 from adduser import Ui_AddUser
 from updateuser import Ui_UpdateUser
-from placeholder import Placeholder
 from addclass import Ui_AddClass
 from updateclass import Ui_UpdateClass
 from updatenote import Ui_UpdateNote
+from addtest import Ui_AddTest
 from messagebox import messageBox
 
 # Naprawa błędu związanego z ikoną aplikacji na Windowsie
@@ -185,26 +185,32 @@ class Ui_MainWindow(object):
             if conn is not None:
                 conn.close()                        # zamknięcie konektora do bazy
 
+    # Akcje dodawania
+
     def addNote(self):
         ui = Ui_AddNote(main)
     
     def addUser(self):
         ui = Ui_AddUser(main)
-    
-    def updateUser(self):
-        ui = Ui_UpdateUser(main)
 
-    def showPlaceholder(self):
-        placeholder = Placeholder()
-    
     def addClass(self):
         ui = Ui_AddClass(main)
+    
+    def addTest(self):
+        ui = Ui_AddTest(main)
+    
+    # Akcje aktualizacji
+
+    def updateUser(self):
+        ui = Ui_UpdateUser(main)
 
     def updateClass(self):
         ui = Ui_UpdateClass(main)
 
     def updateNote(self):
         ui = Ui_UpdateNote(main)
+
+    # Inne
 
     def logout(self):
         self.MainWindow.hide()
@@ -391,7 +397,7 @@ class Ui_MainWindow(object):
         # Placeholdery
         self.actionAddClass.triggered.connect(self.addClass)
         self.actionChangeClass.triggered.connect(self.updateClass)
-        self.actionAddTest.triggered.connect(self.showPlaceholder)
+        self.actionAddTest.triggered.connect(self.addTest)
         self.actionChangeGrade.triggered.connect(self.updateNote)
 
         self.retranslateUi(MainWindow)

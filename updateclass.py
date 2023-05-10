@@ -51,6 +51,7 @@ class Ui_UpdateClass(object):
         self.main.getClasses()
 
     def getClassData(self):
+        # todo: przerobić na main.class_id i class_shortcut
         conn = None 
         try:
             if(self.index != None):
