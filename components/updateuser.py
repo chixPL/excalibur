@@ -9,10 +9,8 @@
 
 
 from PyQt5 import QtCore, QtGui, QtWidgets
-import psycopg2
 import re
 import hashlib
-from config import config
 from messagebox import messageBox
 
 
@@ -27,22 +25,9 @@ class Ui_UpdateUser(object):
         self.Dialog.exec_()
 
     def getAllUsers(self):
-        try:
-            params = config()                       # wczytujemy paramtery połaczenia z bazą
-            conn = psycopg2.connect(**params)       # łączenie z bazą
-            cur = conn.cursor()                     # tworzenie kursora do bazy
-            query = f"SELECT email, imie, nazwisko, rola FROM uzytkownicy ORDER BY id_uzytkownika" # query
-            cur.execute(query)
-            self.userlist = cur.fetchall()
-
-            for row in self.userlist:
-                self.comboBox_2.addItem(f"{row[1]} {row[2]}")
-        except (Exception, psycopg2.DatabaseError) as err:
-            print(f"Błąd połączenia z bazą: {err}")
-            return False
-        finally:
-            if conn is not None:
-                conn.close()                        # zamknięcie konektora do bazy
+        self.userlist = self.main.db.fetchall(f"SELECT email, imie, nazwisko, rola FROM uzytkownicy ORDER BY id_uzytkownika") # query
+        for row in self.userlist:
+            self.comboBox_2.addItem(f"{row[1]} {row[2]}")
     
     def getUserInfo(self):
         userid = self.comboBox_2.currentIndex()
@@ -51,44 +36,20 @@ class Ui_UpdateUser(object):
             "Nauczyciel": 2,
             "Admin": 3
         }
-        try:
-            params = config()                       # wczytujemy paramtery połaczenia z bazą
-            conn = psycopg2.connect(**params)       # łączenie z bazą
-            cur = conn.cursor()                     # tworzenie kursora do bazy
-            query = f"SELECT imie, nazwisko, email, haslo, rola FROM uzytkownicy WHERE id_uzytkownika = {userid+1}" # query
-            cur.execute(query)
-            self.userinfo = cur.fetchall()
-            self.lineEdit.setText(self.userinfo[0][0]) # imie
-            self.lineEdit_2.setText(self.userinfo[0][1]) # nazwisko
-            self.lineEdit_3.setText(self.userinfo[0][2]) # email
-            self.lineEdit_4.setText("••••••••") # nie podajemy hashu md5, źle to wygląda
-            self.comboBox.setCurrentIndex(roledict[self.userinfo[0][4]]-1) # rola
-            
-        except (Exception, psycopg2.DatabaseError) as err:
-            print(f"Błąd połączenia z bazą: {err}")
-            return False
-        finally:
-            if conn is not None:
-                conn.close()                        # zamknięcie konektora do bazy
-    
+        # todo: fetchone tutaj?
+        self.userinfo = self.main.db.fetchall(f"SELECT imie, nazwisko, email, haslo, rola FROM uzytkownicy WHERE id_uzytkownika = {userid+1}") # query
+        self.lineEdit.setText(self.userinfo[0][0]) # imie
+        self.lineEdit_2.setText(self.userinfo[0][1]) # nazwisko
+        self.lineEdit_3.setText(self.userinfo[0][2]) # email
+        self.lineEdit_4.setText("••••••••") # abstrakcja dla długiego hasła MD5
+        self.comboBox.setCurrentIndex(roledict[self.userinfo[0][4]]-1) # rola
+
     def updateUserFunction(self, newUserData):
         userid = self.comboBox_2.currentIndex()
-        try:
-            params = config()                       # wczytujemy paramtery połaczenia z bazą
-            conn = psycopg2.connect(**params)       # łączenie z bazą
-            cur = conn.cursor()                     # tworzenie kursora do bazy
-            query = f"UPDATE uzytkownicy SET imie = '{newUserData['imie']}', nazwisko = '{newUserData['nazwisko']}', email = '{newUserData['email']}', haslo = '{newUserData['haslo']}', rola = '{newUserData['rola']}' WHERE id_uzytkownika = {userid+1}" # query
-            cur.execute(query)
-            conn.commit()
-            self.comboBox_2.setItemText(userid, f"{newUserData['imie']} {newUserData['nazwisko']}") # zmiana nazwy w comboboxie
-            messageBox("Sukces", QtWidgets.QMessageBox.Information, "Zmiany zostały zapisane.")
-            self.main.getUserData()
-        except (Exception, psycopg2.DatabaseError) as err:
-            print(f"Błąd połączenia z bazą: {err}")
-            return False
-        finally:
-            if conn is not None:
-                conn.close()                        # zamknięcie konektora do bazy
+        self.main.db.execute(f"UPDATE uzytkownicy SET imie = '{newUserData['imie']}', nazwisko = '{newUserData['nazwisko']}', email = '{newUserData['email']}', haslo = '{newUserData['haslo']}', rola = '{newUserData['rola']}' WHERE id_uzytkownika = {userid+1}") # query
+        self.comboBox_2.setItemText(userid, f"{newUserData['imie']} {newUserData['nazwisko']}") # zmiana nazwy w comboboxie
+        messageBox("Sukces", QtWidgets.QMessageBox.Information, "Zmiany zostały zapisane.")
+        self.main.getUserData()
     
     def validate(self):
         newUserData = {}

@@ -7,15 +7,25 @@ by Jakub Rutkowski (chixPL) 2023
 
 currentVersion = "0.0.8-dev" # wersja aplikacji
 
+"""
+Ostrzeżenie!
+debug = True loguje wartości zapytań SQL do pliku base/database.log.
+Mogą one zawierać hasła i inne dane osobowe użytkowników!
+Wyłącz tą opcję na produkcji.
+"""
+
+debug = True # Loguj włączenia programu, zapytania oraz błędy bazy danych.
+
 # Standardowe importy
 
 from PyQt5 import QtCore, QtGui, QtWidgets
-import psycopg2
 from datetime import datetime
-from functools import lru_cache
-# Własne pliki
+# Komponenty aplikacji
+import sys
+sys.path.append('components')
+
+from database import Database
 from login import Ui_LoginWindow
-from config import config
 from addnote import Ui_AddNote
 from adduser import Ui_AddUser
 from updateuser import Ui_UpdateUser
@@ -26,28 +36,39 @@ from addtest import Ui_AddTest
 from messagebox import messageBox
 
 # Naprawa błędu związanego z ikoną aplikacji na Windowsie
-from ctypes import windll
+import ctypes # fix dla Python <3.10, from ctypes import windll nie działa
 myappid = 'chix.pyqt.excalibur.v' + currentVersion
 try:
-    windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
+    ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
 except AttributeError: # Ubuntu, macOS
     pass
 
 class Ui_MainWindow(object):
 
     def __init__(self):
-        global currentVersion
+        # Zmienne
+        global currentVersion, debug
         self.currentVersion = currentVersion
-        self.first_init = True
+        self.debug = debug
+        self.first_init = True # pierwsze uruchomienie programu (nie startuj showData() przy currentTextChanged)
         self.sawIntro = False # czy użytkownik widział intro
 
+        # Baza danych
+
+        self.db = Database(self.currentVersion, self.debug)
+        self.db.connect()
+
+        # UI
         MainWindow = QtWidgets.QMainWindow()
         self.MainWindow = MainWindow
         self.setupUi(MainWindow)
+    
+    def __del__(self):
+        self.db.disconnect()
 
     def show_main(self, email):
         self.MainWindow.show() # startuj UI
-        self.getUserInfo(email) # startuj kod
+        self.getUserInfo(email) # startuj logikę programu
 
     def intro(self):
         if self.sawIntro == False:
@@ -55,24 +76,13 @@ class Ui_MainWindow(object):
             self.sawIntro = True
     
     def getUserInfo(self, email):
-        conn = None
-        try:                    # wczytujemy paramtery połaczenia z bazą
-            conn = psycopg2.connect(**self.params)       # łączenie z bazą
-            cur = conn.cursor()                     # tworzenie kursora do bazy
-            query = f"SELECT id_uzytkownika, imie, nazwisko, rola FROM uzytkownicy WHERE email = \'{email}\'" # query
-            cur.execute(query)
-            result = cur.fetchone()
-        except (Exception, psycopg2.DatabaseError) as err:
-            print(f"Błąd połączenia z bazą: {err}")
-            return False
-        finally:
-            if conn is not None:
-                conn.close()                        # zamknięcie konektora do bazy
+        # todo: fetchone?
+        result = self.db.fetchall(f"SELECT id_uzytkownika, imie, nazwisko, rola FROM uzytkownicy WHERE email = \'{email}\'")
         # informacje o użytkowniku
-        self.user_id = result[0]
-        self.user_name = result[1]
-        self.user_surname = result[2]
-        self.user_role = result[3]
+        self.user_id = result[0][0]
+        self.user_name = result[0][1]
+        self.user_surname = result[0][2]
+        self.user_role = result[0][3]
 
         # odpowiednie menu według roli
         
@@ -90,22 +100,12 @@ class Ui_MainWindow(object):
 
     def getClasses(self):
         self.comboBox.clear()
-        conn = None
-        try:
-            conn = psycopg2.connect(**self.params)       # łączenie z bazą
-            cur = conn.cursor()                     # tworzenie kursora do bazy
-            if(self.user_role == 'Nauczyciel'):
-                query = f"SELECT skrot_przedmiotu FROM przedmioty INNER JOIN uzytkownicy ON przedmioty.id_nauczyciela = uzytkownicy.id_uzytkownika WHERE id_nauczyciela = {self.user_id} ORDER BY id_przedmiotu" # query
-            else: # admin view
-                query = f"SELECT skrot_przedmiotu FROM przedmioty ORDER BY id_przedmiotu" # query
-            cur.execute(query)
-            results = cur.fetchall()
-        except (Exception, psycopg2.DatabaseError) as err:
-            print(f"Błąd połączenia z bazą: {err}")
-            return False
-        finally:
-            if conn is not None:
-                conn.close()                        # zamknięcie konektora do bazy
+
+        if(self.user_role == 'Nauczyciel'):
+            results = self.db.fetchall(f"SELECT skrot_przedmiotu FROM przedmioty INNER JOIN uzytkownicy ON przedmioty.id_nauczyciela = uzytkownicy.id_uzytkownika WHERE id_nauczyciela = {self.user_id} ORDER BY id_przedmiotu") # query
+        else: # admin view
+            results = self.db.fetchall(f"SELECT skrot_przedmiotu FROM przedmioty ORDER BY id_przedmiotu") # query
+
         for i in results:
             self.comboBox.addItem(i[0])
         if len(results) == 0:
@@ -123,68 +123,40 @@ class Ui_MainWindow(object):
         self.tableWidget.clear()
         self.class_shortcut = self.comboBox.currentText()
         # Pobierz nazwy sprawdzianów i uczniów
-        conn = None
-        try:
-            conn = psycopg2.connect(**self.params)       # łączenie z bazą
-            cur = conn.cursor()                     # tworzenie kursora do bazy
-
             #todo: refactor do executemany(), na razie zostaje w ten sposób dla przejrzystości
 
-            query = f"SELECT id_przedmiotu FROM przedmioty WHERE skrot_przedmiotu = \'{self.class_shortcut}\'" # pobierz ID klasy
-            cur.execute(query)
-            self.class_id = cur.fetchone()[0]
+        self.class_id = self.db.fetchone(f"SELECT id_przedmiotu FROM przedmioty WHERE skrot_przedmiotu = \'{self.class_shortcut}\'") # pobierz ID klasy
+        user_ids = self.db.fetchall(f"SELECT id_uzytkownika FROM uzytkownicy_przedmioty WHERE id_przedmiotu = {self.class_id} ORDER BY id_uzytkownika") # pobierz ID uczniów którzy się uczą w danej klasie
+        self.user_names = self.db.fetchall(f"SELECT CONCAT_WS(' ', imie, nazwisko)  FROM uzytkownicy_przedmioty INNER JOIN uzytkownicy ON uzytkownicy_przedmioty.id_uzytkownika = uzytkownicy.id_uzytkownika WHERE uzytkownicy_przedmioty.id_przedmiotu = {self.class_id} ORDER BY uzytkownicy.id_uzytkownika") # pobierz nazwy uczniów
+        self.test_names = self.db.fetchall(f"SELECT skrot_sprawdzianu FROM sprawdziany INNER JOIN przedmioty ON sprawdziany.id_przedmiotu=przedmioty.id_przedmiotu WHERE sprawdziany.id_przedmiotu = {self.class_id} ORDER BY id_sprawdzianu") # pobierz nazwy sprawdzianów
 
-            query = f"SELECT id_uzytkownika FROM uzytkownicy_przedmioty WHERE id_przedmiotu = {self.class_id} ORDER BY id_uzytkownika" # pobierz ID uczniów którzy się uczą w danej klasie
-            cur.execute(query)
-            user_ids = cur.fetchall()
 
-            query = f"SELECT CONCAT_WS(' ', imie, nazwisko)  FROM uzytkownicy_przedmioty INNER JOIN uzytkownicy ON uzytkownicy_przedmioty.id_uzytkownika = uzytkownicy.id_uzytkownika WHERE uzytkownicy_przedmioty.id_przedmiotu = {self.class_id} ORDER BY uzytkownicy.id_uzytkownika" # pobierz nazwy uczniów
-            cur.execute(query)
-            user_names = cur.fetchall()
+        self.test_names = [x[0] for x in self.test_names] # usuwamy tuple
+        self.test_names.append('Średnia') # na koniec dodajemy średnią
+        self.user_names = [x[0] for x in self.user_names]
 
-            query = f"SELECT skrot_sprawdzianu FROM sprawdziany INNER JOIN przedmioty ON sprawdziany.id_przedmiotu=przedmioty.id_przedmiotu WHERE sprawdziany.id_przedmiotu = {self.class_id} ORDER BY id_sprawdzianu" # pobierz nazwy sprawdzianów
-            cur.execute(query)
-            test_names = cur.fetchall()
+        self.tableWidget.setColumnCount(len(self.test_names))
+        self.tableWidget.setRowCount(len(self.user_names))
+        self.tableWidget.setHorizontalHeaderLabels(self.test_names)
+        self.tableWidget.setVerticalHeaderLabels(self.user_names)
 
-            test_names = [x[0] for x in test_names] # usuwamy tuple
-            test_names.append('Średnia') # na koniec dodajemy średnią
-            user_names = [x[0] for x in user_names]
+        for i in range(0, len(user_ids)):
+            res = self.db.fetchall(f"SELECT ocena, id_sprawdzianu FROM oceny WHERE id_ucznia = {user_ids[i][0]}")
+            grades = [x[0] for x in res]
+            test_ids = [x[1] for x in res]
+            # wstawiaj kolumnami
+            for j in range(0, len(test_ids)):
+                self.tableWidget.setItem(i, test_ids[j]-1, QtWidgets.QTableWidgetItem(grades[j]))
 
-            self.tableWidget.setColumnCount(len(test_names))
-            self.tableWidget.setRowCount(len(user_names))
-            self.tableWidget.setHorizontalHeaderLabels(test_names)
-            self.tableWidget.setVerticalHeaderLabels(user_names)
-
-            for i in range(0, len(user_ids)):
-                query = f"SELECT ocena, id_sprawdzianu FROM oceny WHERE id_ucznia = {user_ids[i][0]}"
-                # todo: wszystkie informacje o ocenie po dwukliku na ocenę w tablicy
-                cur.execute(query)
-                res = cur.fetchall()
-                grades = [x[0] for x in res]
-                test_ids = [x[1] for x in res]
-                # wstawiaj kolumnami
-                for j in range(0, len(test_ids)):
-                    self.tableWidget.setItem(i, test_ids[j]-1, QtWidgets.QTableWidgetItem(grades[j]))
-
-                query = f"SELECT ROUND(AVG(CAST(LEFT(ocena, 1) AS INT)),2) FROM oceny JOIN sprawdziany ON oceny.id_sprawdzianu = sprawdziany.id_sprawdzianu WHERE id_przedmiotu = {self.class_id} AND id_ucznia = {user_ids[i][0]}" # pobierz średnią ucznia
-                # LEFT bierze pierwszy znak (w średniej plusy/minusy pomijamy) a CAST zmienia varchary na inty
-                cur.execute(query)
-                srednia = cur.fetchone()[0]
-                if srednia is not None:
-                    self.tableWidget.setItem(i, len(test_names)-1, QtWidgets.QTableWidgetItem(str(srednia)))
-                else:
-                    self.tableWidget.setItem(i, len(test_names)-1, QtWidgets.QTableWidgetItem('0.00'))
-                    
-            self.tableWidget.update()
+            srednia = self.db.fetchone(f"SELECT ROUND(AVG(CAST(LEFT(ocena, 1) AS INT)),2) FROM oceny JOIN sprawdziany ON oceny.id_sprawdzianu = sprawdziany.id_sprawdzianu WHERE id_przedmiotu = {self.class_id} AND id_ucznia = {user_ids[i][0]}") # pobierz średnią ucznia
+            # LEFT bierze pierwszy znak (w średniej plusy/minusy pomijamy) a CAST zmienia varchary na inty
+            if srednia is not None:
+                self.tableWidget.setItem(i, len(self.test_names)-1, QtWidgets.QTableWidgetItem(str(srednia)))
+            else:
+                self.tableWidget.setItem(i, len(self.test_names)-1, QtWidgets.QTableWidgetItem('0.00'))
+                
+        self.tableWidget.update()
         
-        except (Exception, psycopg2.DatabaseError) as err:
-            print(f"Błąd połączenia z bazą: {err}")
-            return False
-
-        finally:
-            if conn is not None:
-                conn.close()                        # zamknięcie konektora do bazy
-
     # Akcje dodawania
 
     def addNote(self):

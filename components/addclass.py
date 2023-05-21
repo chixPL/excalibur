@@ -10,12 +10,11 @@
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 from messagebox import messageBox
-import psycopg2
-from config import config
 
 class Ui_ChooseStudents(object):
 
-    def __init__(self):
+    def __init__(self, main):
+        self.main = main
         self.selected = []
         Dialog = QtWidgets.QDialog()
         self.Dialog = Dialog
@@ -51,22 +50,14 @@ class Ui_ChooseStudents(object):
         self.tableWidget.setColumnCount(2)
         self.tableWidget.verticalHeader().setVisible(False)
         self.tableWidget.setHorizontalHeaderLabels(["Uczeń", "Dodaj?"])
-        conn = None
-        params = config()
-        try:
-            conn = psycopg2.connect(**params)
-            cur = conn.cursor()
-            cur.execute("SELECT id_uzytkownika, CONCAT_WS(' ', imie, nazwisko) FROM uzytkownicy WHERE rola = 'Uczeń'")
-            self.rows = cur.fetchall()
-            self.tableWidget.setRowCount(len(self.rows))
-            checkboxes = []
-            for i in range(len(self.rows)):
-                self.tableWidget.setItem(i, 0, QtWidgets.QTableWidgetItem(self.rows[i][1]))
-                checkboxes.append(QtWidgets.QCheckBox())
-                self.tableWidget.setCellWidget(i, 1, checkboxes[i])
-                self.tableWidget.resizeColumnsToContents()
-        except (Exception, psycopg2.DatabaseError) as e:
-            print(f"Błąd połączenia z bazą: {e}")
+        self.rows = self.main.db.fetchall("SELECT id_uzytkownika, CONCAT_WS(' ', imie, nazwisko) FROM uzytkownicy WHERE rola = 'Uczeń'")
+        self.tableWidget.setRowCount(len(self.rows))
+        checkboxes = []
+        for i in range(len(self.rows)):
+            self.tableWidget.setItem(i, 0, QtWidgets.QTableWidgetItem(self.rows[i][1]))
+            checkboxes.append(QtWidgets.QCheckBox())
+            self.tableWidget.setCellWidget(i, 1, checkboxes[i])
+            self.tableWidget.resizeColumnsToContents()
 
         for i in range(0, len(checkboxes)):
             checkboxes[i].stateChanged.connect(self.updateLabel)
@@ -127,7 +118,7 @@ class Ui_AddClass(object):
         Dialog.exec_()
 
     def chooseStudents(self):
-        picker = Ui_ChooseStudents()
+        picker = Ui_ChooseStudents(self.main)
         picker.show()
         self.selected = picker.selected
         self.label_6.setText("Wybrano " + str(len(self.selected)) + " uczniów")
@@ -137,31 +128,17 @@ class Ui_AddClass(object):
             messageBox("Błąd", QtWidgets.QMessageBox.Warning, "Nie można dodać przedmiotu", "Nie podano nazwy lub skrótu klasy lub nie wybrano żadnych uczniów")
         else:
             id_nauczyciela = self.rows[self.comboBox.currentIndex()][0]
-            try:
-                conn = None
-                params = config()
-                conn = psycopg2.connect(**params)
-                cur = conn.cursor()
-                sql = f"SELECT COUNT(*) FROM przedmioty WHERE skrot_przedmiotu = '{self.lineEdit.text()}' OR nazwa_przedmiotu = '{self.lineEdit_2.text()}'"
-                cur.execute(sql)
-                if(cur.fetchone()[0] > 0):
-                    messageBox("Błąd", QtWidgets.QMessageBox.Warning, "Nie można dodać przedmiotu", "Przedmiot o podanej nazwie lub skrócie już istnieje")
-                else:
-                    sql = f"INSERT INTO przedmioty (skrot_przedmiotu, nazwa_przedmiotu, id_nauczyciela) VALUES ('{self.lineEdit.text()}', '{self.lineEdit_2.text()}', {id_nauczyciela}) RETURNING id_przedmiotu"
-                    cur.execute(sql)
-                    id_przedmiotu = cur.fetchone()[0]
-                    for i in self.selected:
-                        sql = f"INSERT INTO uzytkownicy_przedmioty (id_uzytkownika, id_przedmiotu) VALUES ({i}, {id_przedmiotu})"
-                        cur.execute(sql)
-                        conn.commit()
-                    messageBox("Sukces", QtWidgets.QMessageBox.Information, "Dodano przedmiot", "Przedmiot został dodany do bazy danych.")
-                    self.Dialog.close()
-                    self.main.getClasses()
-            except (psycopg2.DatabaseError, Exception) as e:
-                print(f"Błąd połączenia z bazą: {e}")
-            finally:
-                if conn is not None:
-                    conn.close()
+            already_exists = bool(self.main.db.fetchone(f"SELECT COUNT(*) FROM przedmioty WHERE skrot_przedmiotu = '{self.lineEdit.text()}' OR nazwa_przedmiotu = '{self.lineEdit_2.text()}'"))
+            if(already_exists):
+                messageBox("Błąd", QtWidgets.QMessageBox.Warning, "Nie można dodać przedmiotu", "Przedmiot o podanej nazwie lub skrócie już istnieje")
+            else:
+                id_przedmiotu = self.main.db.exec_with_return(f"INSERT INTO przedmioty (skrot_przedmiotu, nazwa_przedmiotu, id_nauczyciela) VALUES ('{self.lineEdit.text()}', '{self.lineEdit_2.text()}', {id_nauczyciela}) RETURNING id_przedmiotu")
+                for i in self.selected:
+                    self.main.db.execute(f"INSERT INTO uzytkownicy_przedmioty (id_uzytkownika, id_przedmiotu) VALUES ({i}, {id_przedmiotu})")
+                messageBox("Sukces", QtWidgets.QMessageBox.Information, "Dodano przedmiot", "Przedmiot został dodany do bazy danych.")
+                self.Dialog.close()
+                self.main.getClasses()
+
     def setupUi(self, Dialog):
         Dialog.setObjectName("Dialog")
         Dialog.resize(471, 379)
@@ -218,21 +195,10 @@ class Ui_AddClass(object):
         self.pushButton_2.clicked.connect(self.chooseStudents)
 
         self.teacher_ids = []
-        conn = None
-        params = config()
-        try:
-            conn = psycopg2.connect(**params)
-            cur = conn.cursor()
-            cur.execute("SELECT id_uzytkownika, CONCAT_WS(' ', imie, nazwisko) FROM uzytkownicy WHERE rola = 'Nauczyciel' ORDER BY id_uzytkownika")
-            self.rows = cur.fetchall()
-            for row in self.rows:
-                self.comboBox.addItem(str(row[1]))
-            conn.close()
-        except (Exception, psycopg2.DatabaseError) as error:
-            messageBox("Błąd", QtWidgets.QMessageBox.Warning, "Nie można pobrać danych", str(error))
-        finally:
-            if conn is not None:
-                conn.close()
+
+        self.rows = self.main.db.fetchall("SELECT id_uzytkownika, CONCAT_WS(' ', imie, nazwisko) FROM uzytkownicy WHERE rola = 'Nauczyciel' ORDER BY id_uzytkownika")
+        for row in self.rows:
+            self.comboBox.addItem(str(row[1]))
 
         self.retranslateUi(Dialog)
         QtCore.QMetaObject.connectSlotsByName(Dialog)

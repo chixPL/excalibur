@@ -9,13 +9,12 @@
 
 
 from PyQt5 import QtCore, QtGui, QtWidgets
-import psycopg2
-from config import config
 from messagebox import messageBox
 
 class Ui_AddTest(object):
 
     def __init__(self, main):
+        self.main = main
         self.class_id = main.class_id
         self.class_shortcut = main.class_shortcut
         self.Dialog = QtWidgets.QDialog()
@@ -24,19 +23,13 @@ class Ui_AddTest(object):
         self.Dialog.exec()
 
     def saveChanges(self):
+        # todo: sprawdzić czy skrót sprawdzianu jest unikalny i spełnia wymagania
         self.test_name = self.lineEdit.text()
         self.test_shortcut = self.lineEdit_2.text()
-        conn = None
-        try:
-            params = config()
-            conn = psycopg2.connect(**params)
-            cur = conn.cursor()
-            cur.execute(f"INSERT INTO sprawdziany (id_przedmiotu, skrot_sprawdzianu, nazwa_sprawdzianu) VALUES ({self.class_id}, '{self.test_shortcut}', '{self.test_name}')")
-            conn.commit()
-            messageBox('Dodano sprawdzian', QtWidgets.QMessageBox.Information, 'Sukces', 'Pomyślnie dodano sprawdzian.')
-        except (Exception, psycopg2.DatabaseError) as e:
-            print("Błąd połączenia z bazą danych", e)
 
+        self.main.db.execute(f"INSERT INTO sprawdziany (id_przedmiotu, skrot_sprawdzianu, nazwa_sprawdzianu) VALUES ({self.class_id}, '{self.test_shortcut}', '{self.test_name}')")
+        messageBox('Dodano sprawdzian', QtWidgets.QMessageBox.Information, 'Sukces', 'Pomyślnie dodano sprawdzian.')
+    
     def setupUi(self, Dialog):
         Dialog.setObjectName("Dialog")
         Dialog.resize(472, 307)

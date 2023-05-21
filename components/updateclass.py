@@ -9,8 +9,6 @@
 
 
 from PyQt5 import QtCore, QtGui, QtWidgets
-import psycopg2
-from config import config
 from messagebox import messageBox
 from addclass import Ui_ChooseStudents
 
@@ -27,59 +25,31 @@ class Ui_UpdateClass(object):
 
     def fillData(self):
         self.comboBox_2.clear()
-        conn = None
-        try:
-            params = config()
-            conn = psycopg2.connect(**params)
-            cur = conn.cursor()
-            cur.execute("SELECT nazwa_przedmiotu FROM przedmioty ORDER BY nazwa_przedmiotu")
-            rows = cur.fetchall()
+        rows = self.main.db.fetchall("SELECT nazwa_przedmiotu FROM przedmioty ORDER BY nazwa_przedmiotu")
+        for row in rows:
+            self.comboBox_2.addItem(row[0])
+        if(self.comboBox.count() == 0):
+            rows = self.main.db.fetchall("SELECT CONCAT_WS(' ', imie, nazwisko) FROM uzytkownicy WHERE rola = 'Nauczyciel' ORDER BY id_uzytkownika")
             for row in rows:
-                self.comboBox_2.addItem(row[0])
-            if(self.comboBox.count() == 0):
-                cur.execute("SELECT CONCAT_WS(' ', imie, nazwisko) FROM uzytkownicy WHERE rola = 'Nauczyciel' ORDER BY id_uzytkownika")
-                rows = cur.fetchall()
-                for row in rows:
-                    self.comboBox.addItem(row[0])
-            cur.close()
-        except (Exception, psycopg2.DatabaseError) as e:
-            print("Błąd połączenia z bazą danych", e)
-        finally:
-            if conn is not None:
-                conn.close()
+                self.comboBox.addItem(row[0])
         self.getClassData() # first init
         self.main.getClasses()
 
     def getClassData(self):
-        # todo: przerobić na main.class_id i class_shortcut
-        conn = None 
         try:
             if(self.index != None):
                 self.comboBox_2.setCurrentIndex(self.index)
-            class_name = self.comboBox_2.currentText()    
-            params = config()
-            conn = psycopg2.connect(**params)
-            cur = conn.cursor()
-            query = f"SELECT id_przedmiotu FROM przedmioty WHERE nazwa_przedmiotu = '{class_name}'"
-            cur.execute(query)
-            self.class_id = cur.fetchone()[0]
-            query = f"SELECT nazwa_przedmiotu, skrot_przedmiotu, CONCAT_WS(' ', imie, nazwisko) FROM przedmioty JOIN uzytkownicy ON przedmioty.id_nauczyciela = uzytkownicy.id_uzytkownika WHERE id_przedmiotu = {self.class_id}"
-            cur.execute(query)
-            rows = cur.fetchall() 
+            class_name = self.comboBox_2.currentText() # todo: niepotrzebne?  
+            rows = self.main.db.fetchall(f"SELECT nazwa_przedmiotu, skrot_przedmiotu, CONCAT_WS(' ', imie, nazwisko) FROM przedmioty JOIN uzytkownicy ON przedmioty.id_nauczyciela = uzytkownicy.id_uzytkownika WHERE id_przedmiotu = {self.main.class_id}")
             for row in rows:
                 self.lineEdit_2.setText(row[0])
                 self.lineEdit.setText(row[1])
                 self.comboBox.setCurrentText(row[2])
-            query = f"SELECT id_uzytkownika FROM uzytkownicy_przedmioty WHERE id_przedmiotu = {self.class_id}"
-            cur.execute(query)
-            self.user_list = [x[0] for x in cur.fetchall()]
+            # todo: naprawić buga
+            self.user_list = [x[0] for x in self.main.db.fetchall(f"SELECT id_uzytkownika FROM uzytkownicy_przedmioty WHERE id_przedmiotu = {self.class_id}")]
             self.label_6.setText("Wybrano " + str(len(self.user_list)) + " uczniów")
-            cur.close()
         except TypeError:
             pass
-        except (psycopg2.DatabaseError) as e:
-            print("Błąd połączenia z bazą danych", e)
-            conn.close()
 
     def showUserPicker(self):
         self.pickerOpened = True
@@ -90,17 +60,12 @@ class Ui_UpdateClass(object):
         self.label_6.setText("Wybrano " + str(len(self.user_list)) + " uczniów")
     
     def update(self):
-        conn = None
-        params = config()
-        conn = psycopg2.connect(**params)
-        cur = conn.cursor()
+
         if(self.pickerOpened): # nie ma sensu kasować id jeśli nie zmieniono uczniów
-            cur.execute(f"DELETE FROM uzytkownicy_przedmioty WHERE id_przedmiotu = {self.class_id}")
+            self.main.db.execute(f"DELETE FROM uzytkownicy_przedmioty WHERE id_przedmiotu = {self.class_id}")
             for user in self.user_list:
-                cur.execute(f"INSERT INTO uzytkownicy_przedmioty (id_uzytkownika, id_przedmiotu) VALUES ({user}, {self.class_id})")
-        cur.execute(f"UPDATE przedmioty SET nazwa_przedmiotu = '{self.lineEdit_2.text()}', skrot_przedmiotu = '{self.lineEdit.text()}', id_nauczyciela = (SELECT id_uzytkownika FROM uzytkownicy WHERE CONCAT_WS(' ', imie, nazwisko) = '{self.comboBox.currentText()}') WHERE id_przedmiotu = {self.class_id}")
-        conn.commit()
-        cur.close()
+                self.main.db.execute(f"INSERT INTO uzytkownicy_przedmioty (id_uzytkownika, id_przedmiotu) VALUES ({user}, {self.class_id})")
+        self.main.db.execute(f"UPDATE przedmioty SET nazwa_przedmiotu = '{self.lineEdit_2.text()}', skrot_przedmiotu = '{self.lineEdit.text()}', id_nauczyciela = (SELECT id_uzytkownika FROM uzytkownicy WHERE CONCAT_WS(' ', imie, nazwisko) = '{self.comboBox.currentText()}') WHERE id_przedmiotu = {self.class_id}")
         self.comboBox_2.setCurrentText(self.lineEdit_2.text())
         self.index = self.comboBox_2.currentIndex()
         self.fillData()

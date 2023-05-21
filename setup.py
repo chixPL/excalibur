@@ -1,3 +1,9 @@
+"""
+Excalibur
+Moduł pierwszego uruchomienia (standalone)
+by Jakub Rutkowski (chixPL) 2023
+"""
+
 # Sprawdzanie requirements.txt
 import pkg_resources
 import sys
@@ -50,6 +56,7 @@ import psycopg2.errors
 from hashlib import md5
 from getpass import getpass
 
+# ;)
 print("="*50)
 print("      /| ________________")
 print("O|===|* >________________>")
