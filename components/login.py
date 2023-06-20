@@ -150,7 +150,7 @@ class Ui_LoginWindow(object):
         # Mój kod
 
         self.pushButton.clicked.connect(self.login)
-        self.pushButton_2.clicked.connect(Ui_IForgot)
+        self.pushButton_2.clicked.connect(lambda: Ui_IForgot(self.main.db))
 
         self.retranslateUi(Form)
         QtCore.QMetaObject.connectSlotsByName(Form)

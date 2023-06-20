@@ -20,16 +20,14 @@ from messagebox import messageBox
 
 class Ui_IForgot(object):
 
-    def __init__(self):
+    def __init__(self, db):
+        self.db = db
         Dialog = QtWidgets.QDialog()
         self.Dialog = Dialog
         self.setupUi(Dialog)
         self.Dialog.show()
         self.Dialog.exec()
 
-        # DB
-        self.db = Database()
-        self.db.connect()
 
     def initProcess(self):
         email = self.lineEdit.text()

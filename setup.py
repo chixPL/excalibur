@@ -89,8 +89,8 @@ if createDB.lower() == 't' or useDBIni.lower() == 't' or useDBIni.lower() == 'n'
         user = input('Podaj nazwę użytkownika DB: ')
         password = getpass('Podaj hasło użytkownika DB: ')
         host = input('Podaj host (domyślnie: localhost): ')
-        cur_name = input('Podaj istniejącą bazę danych (domyślnie: postgres): ')
-        db_name = input('Podaj nazwę bazy danych dla aplikacji (domyślnie: exc): ')
+        cur_name = input('Podaj nazwę już instniejącej bazy danych (domyślnie: postgres): ')
+        db_name = input('Podaj nazwę bazy danych, która ma być utworzona dla aplikacji (domyślnie: exc): ')
 
         if host == '':
             host = 'localhost'

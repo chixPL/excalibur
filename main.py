@@ -14,7 +14,7 @@ Mogą one zawierać hasła i inne dane osobowe użytkowników!
 Wyłącz tą opcję na produkcji.
 """
 
-debug = False # Loguj włączenia programu, zapytania oraz błędy bazy danych.
+debug = True # Loguj włączenia programu, zapytania oraz błędy bazy danych.
 
 # Standardowe importy
 
@@ -130,10 +130,12 @@ class Ui_MainWindow(object):
         self.user_names = self.db.fetchall(f"SELECT CONCAT_WS(' ', imie, nazwisko)  FROM uzytkownicy_przedmioty INNER JOIN uzytkownicy ON uzytkownicy_przedmioty.id_uzytkownika = uzytkownicy.id_uzytkownika WHERE uzytkownicy_przedmioty.id_przedmiotu = {self.class_id} ORDER BY uzytkownicy.id_uzytkownika") # pobierz nazwy uczniów
         self.test_names = self.db.fetchall(f"SELECT skrot_sprawdzianu FROM sprawdziany INNER JOIN przedmioty ON sprawdziany.id_przedmiotu=przedmioty.id_przedmiotu WHERE sprawdziany.id_przedmiotu = {self.class_id} ORDER BY id_sprawdzianu") # pobierz nazwy sprawdzianów
 
-
-        self.test_names = [x[0] for x in self.test_names] # usuwamy tuple
-        self.test_names.append('Średnia') # na koniec dodajemy średnią
-        self.user_names = [x[0] for x in self.user_names]
+        try:
+            self.test_names = [x[0] for x in self.test_names] # usuwamy tuple
+            self.test_names.append('Średnia') # na koniec dodajemy średnią
+            self.user_names = [x[0] for x in self.user_names]
+        except TypeError: # todo: fix db error bool object is not iterable
+            pass
 
         # Tworzenie tabeli i dodawanie danych
         self.tableWidget.setColumnCount(len(self.test_names))
