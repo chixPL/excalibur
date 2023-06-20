@@ -135,6 +135,7 @@ class Ui_MainWindow(object):
         self.test_names.append('Średnia') # na koniec dodajemy średnią
         self.user_names = [x[0] for x in self.user_names]
 
+        # Tworzenie tabeli i dodawanie danych
         self.tableWidget.setColumnCount(len(self.test_names))
         self.tableWidget.setRowCount(len(self.user_names))
         self.tableWidget.setHorizontalHeaderLabels(self.test_names)

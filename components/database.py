@@ -7,16 +7,12 @@ by Jakub Rutkowski (chixPL) 2023
 import psycopg2
 from functools import lru_cache
 from configparser import ConfigParser
-import os
 import datetime
 import platform
 
-if(os.path.exists('base/database.log')):
-    os.remove('base/database.log')
-
 class Database:
 
-    def __init__(self, currentVersion, debug=False, filename='base\database.ini', section='postgresql'):
+    def __init__(self, currentVersion, debug=False, filename='base/database.ini', section='postgresql'):
         self.debug = debug
         self.currentVersion = currentVersion
         parser = ConfigParser() #tworzenie obiektu parsera
@@ -42,12 +38,12 @@ class Database:
             print(f"Błąd połączenia z bazą: {e}")
         finally:
             if(self.debug):
-                with open("base/database.log", "a+") as f:
+                with open("base/database.log", "a") as f:
                     f.write(f"{datetime.datetime.now().strftime('%H:%M:%S')} Zalogowano do DB.\n")
                     f.write(self.fetchone("SELECT version()") + "\n")
     
     def disconnect(self):
-        with open("base/database.log", "a+") as f:
+        with open("base/database.log", "a") as f:
             f.write(f"{datetime.datetime.now().strftime('%H:%M:%S')} Rozłączono z db.\n")
         self.conn.close()
 
@@ -118,7 +114,7 @@ class Database:
     # Logi
 
     def log_start(self):
-        with open("base/database.log", "a+") as f:
+        with open("base/database.log", "w+") as f:
             f.write("      /| ________________\n")
             f.write("O|===|* >________________>\n")
             f.write("      \| \n")
@@ -129,10 +125,10 @@ class Database:
             f.write(f"System {platform.system()} {platform.release()}\n")
     
     def log_success(self, query, mode):
-        with open("base/database.log", "a+") as f:
+        with open("base/database.log", "a") as f:
             f.write(f"{datetime.datetime.now().strftime('%H:%M:%S')} {mode} : {query}\n")
     
     def log_error(self, query, mode, error):
-        with open("base/database.log", "a+") as f:
+        with open("base/database.log", "a") as f:
             f.write(f"{datetime.datetime.now().strftime('%H:%M:%S')} ERROR {mode} : {query} - {error}\n")
     

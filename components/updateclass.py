@@ -36,11 +36,12 @@ class Ui_UpdateClass(object):
         self.main.getClasses()
 
     def getClassData(self):
+        class_name = self.comboBox_2.currentText() # todo: niepotrzebne?  
+        self.class_id = self.main.db.fetchone(f"SELECT id_przedmiotu FROM przedmioty WHERE nazwa_przedmiotu = '{class_name}'")
         try:
             if(self.index != None):
                 self.comboBox_2.setCurrentIndex(self.index)
-            class_name = self.comboBox_2.currentText() # todo: niepotrzebne?  
-            rows = self.main.db.fetchall(f"SELECT nazwa_przedmiotu, skrot_przedmiotu, CONCAT_WS(' ', imie, nazwisko) FROM przedmioty JOIN uzytkownicy ON przedmioty.id_nauczyciela = uzytkownicy.id_uzytkownika WHERE id_przedmiotu = {self.main.class_id}")
+            rows = self.main.db.fetchall(f"SELECT nazwa_przedmiotu, skrot_przedmiotu, CONCAT_WS(' ', imie, nazwisko) FROM przedmioty JOIN uzytkownicy ON przedmioty.id_nauczyciela = uzytkownicy.id_uzytkownika WHERE id_przedmiotu = {self.class_id}")
             for row in rows:
                 self.lineEdit_2.setText(row[0])
                 self.lineEdit.setText(row[1])
@@ -62,10 +63,10 @@ class Ui_UpdateClass(object):
     def update(self):
 
         if(self.pickerOpened): # nie ma sensu kasować id jeśli nie zmieniono uczniów
-            self.main.db.execute(f"DELETE FROM uzytkownicy_przedmioty WHERE id_przedmiotu = {self.class_id}")
+            self.main.db.execute(f"DELETE FROM uzytkownicy_przedmioty WHERE id_przedmiotu = {self.main.class_id}")
             for user in self.user_list:
-                self.main.db.execute(f"INSERT INTO uzytkownicy_przedmioty (id_uzytkownika, id_przedmiotu) VALUES ({user}, {self.class_id})")
-        self.main.db.execute(f"UPDATE przedmioty SET nazwa_przedmiotu = '{self.lineEdit_2.text()}', skrot_przedmiotu = '{self.lineEdit.text()}', id_nauczyciela = (SELECT id_uzytkownika FROM uzytkownicy WHERE CONCAT_WS(' ', imie, nazwisko) = '{self.comboBox.currentText()}') WHERE id_przedmiotu = {self.class_id}")
+                self.main.db.execute(f"INSERT INTO uzytkownicy_przedmioty (id_uzytkownika, id_przedmiotu) VALUES ({user}, {self.main.class_id})")
+        self.main.db.execute(f"UPDATE przedmioty SET nazwa_przedmiotu = '{self.lineEdit_2.text()}', skrot_przedmiotu = '{self.lineEdit.text()}', id_nauczyciela = (SELECT id_uzytkownika FROM uzytkownicy WHERE CONCAT_WS(' ', imie, nazwisko) = '{self.comboBox.currentText()}') WHERE id_przedmiotu = {self.main.class_id}")
         self.comboBox_2.setCurrentText(self.lineEdit_2.text())
         self.index = self.comboBox_2.currentIndex()
         self.fillData()
