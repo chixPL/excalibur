@@ -36,17 +36,15 @@ class Ui_UpdateClass(object):
         self.main.getClasses()
 
     def getClassData(self):
-        class_name = self.comboBox_2.currentText() # todo: niepotrzebne?  
-        self.class_id = self.main.db.fetchone(f"SELECT id_przedmiotu FROM przedmioty WHERE nazwa_przedmiotu = '{class_name}'")
+        self.class_id = self.main.class_id
         try:
             if(self.index != None):
                 self.comboBox_2.setCurrentIndex(self.index)
-            rows = self.main.db.fetchall(f"SELECT nazwa_przedmiotu, skrot_przedmiotu, CONCAT_WS(' ', imie, nazwisko) FROM przedmioty JOIN uzytkownicy ON przedmioty.id_nauczyciela = uzytkownicy.id_uzytkownika WHERE id_przedmiotu = {self.class_id}")
+            rows = self.main.db.fetchall(f"SELECT nazwa_przedmiotu, skrot_przedmiotu, CONCAT_WS(' ', imie, nazwisko) FROM przedmioty JOIN uzytkownicy ON przedmioty.id_nauczyciela = uzytkownicy.id_uzytkownika WHERE id_przedmiotu = {self.comboBox_2.currentIndex()+1}")
             for row in rows:
                 self.lineEdit_2.setText(row[0])
                 self.lineEdit.setText(row[1])
                 self.comboBox.setCurrentText(row[2])
-            # todo: naprawić buga
             self.user_list = [x[0] for x in self.main.db.fetchall(f"SELECT id_uzytkownika FROM uzytkownicy_przedmioty WHERE id_przedmiotu = {self.class_id}")]
             self.label_6.setText("Wybrano " + str(len(self.user_list)) + " uczniów")
         except TypeError:
@@ -54,7 +52,7 @@ class Ui_UpdateClass(object):
 
     def showUserPicker(self):
         self.pickerOpened = True
-        picker = Ui_ChooseStudents()
+        picker = Ui_ChooseStudents(self.main)
         picker.preselectCheckBoxes(self.user_list)
         picker.show()
         self.user_list = picker.selected
@@ -66,9 +64,11 @@ class Ui_UpdateClass(object):
             self.main.db.execute(f"DELETE FROM uzytkownicy_przedmioty WHERE id_przedmiotu = {self.main.class_id}")
             for user in self.user_list:
                 self.main.db.execute(f"INSERT INTO uzytkownicy_przedmioty (id_uzytkownika, id_przedmiotu) VALUES ({user}, {self.main.class_id})")
+        # todo: jeśli niektóre pola są puste to nie aktualizuj ich bo powoduje to problemy z indexem UNIQUE
         self.main.db.execute(f"UPDATE przedmioty SET nazwa_przedmiotu = '{self.lineEdit_2.text()}', skrot_przedmiotu = '{self.lineEdit.text()}', id_nauczyciela = (SELECT id_uzytkownika FROM uzytkownicy WHERE CONCAT_WS(' ', imie, nazwisko) = '{self.comboBox.currentText()}') WHERE id_przedmiotu = {self.main.class_id}")
         self.comboBox_2.setCurrentText(self.lineEdit_2.text())
         self.index = self.comboBox_2.currentIndex()
+        self.main.getClasses(self.lineEdit.text())
         self.fillData()
         messageBox("Sukces", QtWidgets.QMessageBox.Information, "Zaktualizowano przedmiot")
 

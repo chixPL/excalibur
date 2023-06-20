@@ -36,7 +36,6 @@ class Ui_UpdateUser(object):
             "Nauczyciel": 2,
             "Admin": 3
         }
-        # todo: fetchone tutaj?
         self.userinfo = self.main.db.fetchall(f"SELECT imie, nazwisko, email, haslo, rola FROM uzytkownicy WHERE id_uzytkownika = {userid+1}") # query
         self.lineEdit.setText(self.userinfo[0][0]) # imie
         self.lineEdit_2.setText(self.userinfo[0][1]) # nazwisko

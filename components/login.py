@@ -20,7 +20,7 @@ class Ui_LoginWindow(object):
         
         self.isDBOkay = main.db.check_connection()
         if not self.isDBOkay:
-            messageBox("Błąd połączenia z bazą danych", QtWidgets.QMessageBox.Critical, "Błąd połączenia z bazą danych", "Nie udało się połączyć z bazą danych. Sprawdź konfigurację database.ini. Jeżeli uruchamiasz Excalibura po raz pierwszy, uruchom najpierw setup.py")
+            messageBox("Błąd połączenia z bazą danych", QtWidgets.QMessageBox.Critical, "Błąd połączenia z bazą danych.", "Nie udało się połączyć z bazą danych.\nJeżeli uruchamiasz Excalibura po raz pierwszy, uruchom najpierw setup.py.\nJeśli uważasz, że to błąd, sprawdź poprawność pliku database.ini.")
             exit()
         else:
             self.main = main

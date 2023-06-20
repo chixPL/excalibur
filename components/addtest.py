@@ -24,12 +24,13 @@ class Ui_AddTest(object):
 
     def saveChanges(self):
         # todo: sprawdzić czy skrót sprawdzianu jest unikalny i spełnia wymagania
-        self.test_name = self.lineEdit.text()
-        self.test_shortcut = self.lineEdit_2.text()
+        self.test_name = self.lineEdit_2.text()
+        self.test_shortcut = self.lineEdit.text()
 
         self.main.db.execute(f"INSERT INTO sprawdziany (id_przedmiotu, skrot_sprawdzianu, nazwa_sprawdzianu) VALUES ({self.class_id}, '{self.test_shortcut}', '{self.test_name}')")
+        self.main.showData()
         messageBox('Dodano sprawdzian', QtWidgets.QMessageBox.Information, 'Sukces', 'Pomyślnie dodano sprawdzian.')
-    
+
     def setupUi(self, Dialog):
         Dialog.setObjectName("Dialog")
         Dialog.resize(472, 307)

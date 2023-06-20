@@ -24,7 +24,7 @@ class Ui_AddNote(object):
     def fillComboBoxes(self):
         self.label_5.setText("Przedmiot: " + self.main.class_shortcut)
 
-        for i in range(0, len(self.main.test_names)):
+        for i in range(0, len(self.main.test_names)-1): # weź wszystkie sprawdziany oprócz średniej
             self.comboBox.addItem(self.main.test_names[i])
         for i in range(0, len(self.main.user_names)):
             self.comboBox_2.addItem(self.main.user_names[i])
@@ -45,7 +45,7 @@ class Ui_AddNote(object):
             messageBox("Błąd", QtWidgets.QMessageBox.Critical, "Uczeń ma już ocenę z tego sprawdzianu.")
             
         else:
-            self.main.db.execute("INSERT INTO oceny(id_ucznia, id_sprawdzianu, ocena, wartosc) VALUES({student_id}, {test_id}, \'{grade}\', \'{value}\')")
+            self.main.db.execute(f"INSERT INTO oceny(id_ucznia, id_sprawdzianu, ocena, wartosc) VALUES({student_id}, {test_id}, \'{grade}\', \'{value}\')")
             self.main.showData() # odśwież tabelę
         #self.Dialog.close() # zamknij okno
 

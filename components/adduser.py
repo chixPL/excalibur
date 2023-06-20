@@ -53,7 +53,6 @@ class Ui_AddUser(object):
             self.main.db.execute(f"INSERT INTO uzytkownicy(email, haslo, rola, imie, nazwisko) VALUES(\'{email}\', \'{haslo}\', \'{rola}\', \'{imie}\', \'{nazwisko}\')") # query
             messageBox("Sukces", QtWidgets.QMessageBox.Information, "Dodano użytkownika", "Użytkownik został pomyślnie dodany do bazy danych.")
             self.clearAllInputs()
-            self.main.showData() # odśwież tabelę
 
 
     def setupUi(self, Dialog):

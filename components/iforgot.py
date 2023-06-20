@@ -16,8 +16,6 @@ from uuid import uuid4
 from validate import validateEmail, validatePassword
 from messagebox import messageBox
 
-#todo: fix: dodać main
-
 class Ui_IForgot(object):
 
     def __init__(self, db):

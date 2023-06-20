@@ -3,9 +3,12 @@
 """
 Excalibur - dziennik szkolny
 by Jakub Rutkowski (chixPL) 2023
+
+Plik główny aplikacji
+Program nie zadziała bez zainstalowania bazy za pomocą dołączonego pliku setup.py.
 """
 
-currentVersion = "0.0.8-dev" # wersja aplikacji
+currentVersion = "1.0.0" # wersja aplikacji
 
 """
 Ostrzeżenie!
@@ -76,8 +79,7 @@ class Ui_MainWindow(object):
             self.sawIntro = True
     
     def getUserInfo(self, email):
-        # todo: fetchone?
-        result = self.db.fetchall(f"SELECT id_uzytkownika, imie, nazwisko, rola FROM uzytkownicy WHERE email = \'{email}\'")
+        result = self.db.fetchone(f"SELECT id_uzytkownika, imie, nazwisko, rola FROM uzytkownicy WHERE email = \'{email}\'")
         # informacje o użytkowniku
         self.user_id = result[0][0]
         self.user_name = result[0][1]
@@ -121,20 +123,20 @@ class Ui_MainWindow(object):
             self.first_init = False
             return
         self.tableWidget.clear()
-        self.class_shortcut = self.comboBox.currentText()
+        if self.comboBox.currentText() not in ["Brak klas", ""]:
+            self.class_shortcut = self.comboBox.currentText()
         # Pobierz nazwy sprawdzianów i uczniów
-            #todo: refactor do executemany(), na razie zostaje w ten sposób dla przejrzystości
-
-        self.class_id = self.db.fetchone(f"SELECT id_przedmiotu FROM przedmioty WHERE skrot_przedmiotu = \'{self.class_shortcut}\'") # pobierz ID klasy
-        user_ids = self.db.fetchall(f"SELECT id_uzytkownika FROM uzytkownicy_przedmioty WHERE id_przedmiotu = {self.class_id} ORDER BY id_uzytkownika") # pobierz ID uczniów którzy się uczą w danej klasie
-        self.user_names = self.db.fetchall(f"SELECT CONCAT_WS(' ', imie, nazwisko)  FROM uzytkownicy_przedmioty INNER JOIN uzytkownicy ON uzytkownicy_przedmioty.id_uzytkownika = uzytkownicy.id_uzytkownika WHERE uzytkownicy_przedmioty.id_przedmiotu = {self.class_id} ORDER BY uzytkownicy.id_uzytkownika") # pobierz nazwy uczniów
-        self.test_names = self.db.fetchall(f"SELECT skrot_sprawdzianu FROM sprawdziany INNER JOIN przedmioty ON sprawdziany.id_przedmiotu=przedmioty.id_przedmiotu WHERE sprawdziany.id_przedmiotu = {self.class_id} ORDER BY id_sprawdzianu") # pobierz nazwy sprawdzianów
 
         try:
+            self.class_id = self.db.fetchone(f"SELECT id_przedmiotu FROM przedmioty WHERE skrot_przedmiotu = \'{self.class_shortcut}\'") # pobierz ID klasy
+            user_ids = self.db.fetchall(f"SELECT id_uzytkownika FROM uzytkownicy_przedmioty WHERE id_przedmiotu = {self.class_id} ORDER BY id_uzytkownika") # pobierz ID uczniów którzy się uczą w danej klasie
+            self.user_names = self.db.fetchall(f"SELECT CONCAT_WS(' ', imie, nazwisko)  FROM uzytkownicy_przedmioty INNER JOIN uzytkownicy ON uzytkownicy_przedmioty.id_uzytkownika = uzytkownicy.id_uzytkownika WHERE uzytkownicy_przedmioty.id_przedmiotu = {self.class_id} ORDER BY uzytkownicy.id_uzytkownika") # pobierz nazwy uczniów
+            self.test_names = self.db.fetchall(f"SELECT skrot_sprawdzianu FROM sprawdziany INNER JOIN przedmioty ON sprawdziany.id_przedmiotu=przedmioty.id_przedmiotu WHERE sprawdziany.id_przedmiotu = {self.class_id} ORDER BY id_sprawdzianu") # pobierz nazwy sprawdzianów
+
             self.test_names = [x[0] for x in self.test_names] # usuwamy tuple
             self.test_names.append('Średnia') # na koniec dodajemy średnią
             self.user_names = [x[0] for x in self.user_names]
-        except TypeError: # todo: fix db error bool object is not iterable
+        except Exception as e:
             pass
 
         # Tworzenie tabeli i dodawanie danych

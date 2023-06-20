@@ -33,14 +33,12 @@ class Database:
         try:
             self.conn = psycopg2.connect(**self.db_params)
             self.cur = self.conn.cursor()
-            return True
-        except (Exception, psycopg2.DatabaseError) as e:
-            print(f"Błąd połączenia z bazą: {e}")
-        finally:
             if(self.debug):
                 with open("base/database.log", "a") as f:
                     f.write(f"{datetime.datetime.now().strftime('%H:%M:%S')} Zalogowano do DB.\n")
                     f.write(self.fetchone("SELECT version()") + "\n")
+        except (Exception, psycopg2.DatabaseError) as e:
+            print(f"Błąd połączenia z bazą: {e}")
     
     def disconnect(self):
         with open("base/database.log", "a") as f:
