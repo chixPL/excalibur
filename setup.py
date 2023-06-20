@@ -86,12 +86,20 @@ if createDB.lower() == 't' or useDBIni.lower() == 't' or useDBIni.lower() == 'n'
         except Exception:
             sys.exit("Błąd odczytu pliku database.ini. Sprawdź czy plik jest poprawny.")
     else:
-        db_name = input('Podaj nazwę bazy danych: ')
         user = input('Podaj nazwę użytkownika DB: ')
         password = getpass('Podaj hasło użytkownika DB: ')
-        host = input('Podaj host: ')
+        host = input('Podaj host (domyślnie: localhost): ')
+        cur_name = input('Podaj istniejącą bazę danych (domyślnie: postgres): ')
+        db_name = input('Podaj nazwę bazy danych dla aplikacji (domyślnie: exc): ')
+
+        if host == '':
+            host = 'localhost'
+        if cur_name == '':
+            cur_name = 'postgres'
+        if db_name == '':
+            db_name = 'exc'
     try:
-        conn = psycopg2.connect(f"dbname='postgres' user='{user}' host='{host}' password='{password}'")
+        conn = psycopg2.connect(f"dbname='{cur_name}' user='{user}' host='{host}' password='{password}'")
         conn.autocommit = True
         cur = conn.cursor()
         cur.execute(f"CREATE DATABASE {db_name}")

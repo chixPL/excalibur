@@ -14,7 +14,7 @@ Mogą one zawierać hasła i inne dane osobowe użytkowników!
 Wyłącz tą opcję na produkcji.
 """
 
-debug = True # Loguj włączenia programu, zapytania oraz błędy bazy danych.
+debug = False # Loguj włączenia programu, zapytania oraz błędy bazy danych.
 
 # Standardowe importy
 
