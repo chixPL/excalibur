@@ -26,7 +26,7 @@ A school register application written in Python using Qt5.
     * `pip install -r requirements.txt`
 3. Run the setup script:
     * `python setup.py`
-    , then follow the instructions in the app.
+    , then follow the instructions on screen. The setup script will create a clean database with one admin user. Additional users, classes and grades can be added through the main app.
 4. After the setup script is done, open the app:
     * `python main.py`
 
