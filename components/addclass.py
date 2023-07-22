@@ -132,7 +132,7 @@ class Ui_AddClass(object):
             if(already_exists):
                 messageBox("Błąd", QtWidgets.QMessageBox.Warning, "Nie można dodać przedmiotu", "Przedmiot o podanej nazwie lub skrócie już istnieje")
             else:
-                id_przedmiotu = self.main.db.exec_with_return(f"INSERT INTO przedmioty (skrot_przedmiotu, nazwa_przedmiotu, id_nauczyciela) VALUES ('{self.lineEdit.text()}', '{self.lineEdit_2.text()}', {id_nauczyciela}) RETURNING id_przedmiotu")
+                id_przedmiotu = self.main.db.execute(f"INSERT INTO przedmioty (skrot_przedmiotu, nazwa_przedmiotu, id_nauczyciela) VALUES ('{self.lineEdit.text()}', '{self.lineEdit_2.text()}', {id_nauczyciela}) RETURNING id_przedmiotu", True)
                 for i in self.selected:
                     self.main.db.execute(f"INSERT INTO uzytkownicy_przedmioty (id_uzytkownika, id_przedmiotu) VALUES ({i}, {id_przedmiotu[0]})")
                 messageBox("Sukces", QtWidgets.QMessageBox.Information, "Dodano przedmiot", "Przedmiot został dodany do bazy danych.")

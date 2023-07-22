@@ -45,19 +45,20 @@ class Database:
             f.write(f"{datetime.datetime.now().strftime('%H:%M:%S')} Rozłączono z db.\n")
         self.conn.close()
 
-    def fetchone(self, query):
+    def fetchone(self, query, oneRow=False):
         try:
             self.cur.execute(query)
             if self.debug:
                 self.log_success(query, "Read")
+            if oneRow:
+                return self.cur.fetchone()
             return self.cur.fetchone()[0]
         except (Exception, psycopg2.DatabaseError) as e:
             if self.debug:
                 print(f"Błąd bazy danych: {e}\n w query: {query}")
                 self.log_error(query, "Read", e)
             return False
-                
-    
+          
     def fetchall(self, query):
         try:
             self.cur.execute(query)
@@ -70,29 +71,20 @@ class Database:
                 self.log_error(query, "ReadAll", e)
             return False
     
-    def execute(self, query):
+    def execute(self, query, doReturn=False):
         try:
             self.cur.execute(query)
             self.conn.commit()
             if self.debug:
                 self.log_success(query, "Write")
-            return True
+            if doReturn:
+                return self.cur.fetchone()
+            else:
+                return True
         except (Exception, psycopg2.DatabaseError) as e:
             if self.debug:
                 print(f"Błąd bazy danych: {e}\n w query: {query}")
                 self.log_error(query, "Write", e)
-            return False
-
-    def exec_with_return(self, query):
-        try:
-            self.cur.execute(query)
-            if self.debug:
-                self.log_success(query, "Write_Return")
-            return self.cur.fetchone()
-        except (Exception, psycopg2.DatabaseError) as e:
-            if self.debug:
-                print(f"Błąd bazy danych: {e}\n w query: {query}")
-                self.log_error(query, "Write_Return", e)
             return False
 
     @lru_cache(maxsize=4)

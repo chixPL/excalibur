@@ -80,6 +80,7 @@ if createDB.lower() == 't' or useDBIni.lower() == 't' or useDBIni.lower() == 'n'
         try:
             params = config()
             db_name = params['database']
+            cur_name = 'postgres'
             user = params['user']
             password = params['password']
             host = params['host']
