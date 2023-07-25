@@ -70,16 +70,17 @@ class Ui_MainWindow(object):
         self.db.disconnect()
 
     def show_main(self, email):
+        self.email = email
         self.MainWindow.show() # startuj UI
-        self.getUserInfo(email) # startuj logikę programu
+        self.getUserInfo() # startuj logikę programu
 
     def intro(self):
         if self.sawIntro == False:
             messageBox("Informacja", QtWidgets.QMessageBox.Information, "Witamy w Excaliburze!", "Aby rozpocząć, dodaj przynajmniej jednego nauczyciela, jedną klasę i jednego ucznia za pomocą menu admina.")
             self.sawIntro = True
     
-    def getUserInfo(self, email):
-        result = self.db.fetchone(f"SELECT id_uzytkownika, imie, nazwisko, rola FROM uzytkownicy WHERE email = \'{email}\'", True)
+    def getUserInfo(self):
+        result = self.db.fetchone(f"SELECT id_uzytkownika, imie, nazwisko, rola FROM uzytkownicy WHERE email = \'{self.email}\'", True)
         # informacje o użytkowniku
         self.user_id = result[0]
         self.user_name = result[1]
@@ -100,7 +101,7 @@ class Ui_MainWindow(object):
         self.label_2.setText(f"Witaj, {self.user_name} {self.user_surname}! | Twoja rola: {self.user_role}")
         self.getClasses()
 
-    def getClasses(self):
+    def getClasses(self, reload=False):
         self.comboBox.clear()
 
         if(self.user_role == 'Nauczyciel'):
@@ -108,15 +109,20 @@ class Ui_MainWindow(object):
         else: # admin view
             results = self.db.fetchall(f"SELECT skrot_przedmiotu FROM przedmioty ORDER BY id_przedmiotu") # query
 
-        for i in results:
-            self.comboBox.addItem(i[0])
-        if len(results) == 0:
-            self.comboBox.addItem("Brak klas")
-            self.comboBox.setDisabled(True)
-            self.intro()
+        if reload:
+            print("Reloading...")
+            for i in range(0, len(results)):
+                self.comboBox.setItemText(i, results[1])
         else:
-            self.comboBox.setDisabled(False)
-            self.showData()
+            for i in results:
+                self.comboBox.addItem(i[0])
+            if len(results) == 0:
+                self.comboBox.addItem("Brak klas")
+                self.comboBox.setDisabled(True)
+                self.intro()
+            else:
+                self.comboBox.setDisabled(False)
+                self.showData()
 
     def showData(self):
         if(self.first_init == True): # nie startuj przy currentTextChanged na inicie
@@ -127,11 +133,13 @@ class Ui_MainWindow(object):
             self.class_shortcut = self.comboBox.currentText()
         # Pobierz nazwy sprawdzianów i uczniów
 
-        self.class_id = self.db.fetchone(f"SELECT id_przedmiotu FROM przedmioty WHERE skrot_przedmiotu = \'{self.class_shortcut}\'") # pobierz ID klasy
-        user_ids = self.db.fetchall(f"SELECT id_uzytkownika FROM uzytkownicy_przedmioty WHERE id_przedmiotu = {self.class_id} ORDER BY id_uzytkownika") # pobierz ID uczniów którzy się uczą w danej klasie
-        self.user_names = self.db.fetchall(f"SELECT CONCAT_WS(' ', imie, nazwisko)  FROM uzytkownicy_przedmioty INNER JOIN uzytkownicy ON uzytkownicy_przedmioty.id_uzytkownika = uzytkownicy.id_uzytkownika WHERE uzytkownicy_przedmioty.id_przedmiotu = {self.class_id} ORDER BY uzytkownicy.id_uzytkownika") # pobierz nazwy uczniów
-        self.test_names = self.db.fetchall(f"SELECT skrot_sprawdzianu FROM sprawdziany INNER JOIN przedmioty ON sprawdziany.id_przedmiotu=przedmioty.id_przedmiotu WHERE sprawdziany.id_przedmiotu = {self.class_id} ORDER BY id_sprawdzianu") # pobierz nazwy sprawdzianów
-
+        try:
+            self.class_id = self.db.fetchone(f"SELECT id_przedmiotu FROM przedmioty WHERE skrot_przedmiotu = \'{self.class_shortcut}\'") # pobierz ID klasy
+            user_ids = self.db.fetchall(f"SELECT id_uzytkownika FROM uzytkownicy_przedmioty WHERE id_przedmiotu = {self.class_id} ORDER BY id_uzytkownika") # pobierz ID uczniów którzy się uczą w danej klasie
+            self.user_names = self.db.fetchall(f"SELECT CONCAT_WS(' ', imie, nazwisko)  FROM uzytkownicy_przedmioty INNER JOIN uzytkownicy ON uzytkownicy_przedmioty.id_uzytkownika = uzytkownicy.id_uzytkownika WHERE uzytkownicy_przedmioty.id_przedmiotu = {self.class_id} ORDER BY uzytkownicy.id_uzytkownika") # pobierz nazwy uczniów
+            self.test_names = self.db.fetchall(f"SELECT skrot_sprawdzianu FROM sprawdziany INNER JOIN przedmioty ON sprawdziany.id_przedmiotu=przedmioty.id_przedmiotu WHERE sprawdziany.id_przedmiotu = {self.class_id} ORDER BY id_sprawdzianu") # pobierz nazwy sprawdzianów
+        except Exception:
+            pass
         # Możliwe że będzie puste, w przypadku kiedy nie zostały jeszcze uzupełnione wszystkie dane
 
         if len(self.test_names) == 0:
@@ -167,7 +175,9 @@ class Ui_MainWindow(object):
                 self.tableWidget.setItem(i, len(self.test_names)-1, QtWidgets.QTableWidgetItem(str(srednia)))
             else:
                 self.tableWidget.setItem(i, len(self.test_names)-1, QtWidgets.QTableWidgetItem('Brak ocen'))
-                
+        
+        self.tableWidget.resizeColumnsToContents()
+        self.tableWidget.resizeRowsToContents()
         self.tableWidget.update()
         
     # Akcje dodawania
@@ -361,7 +371,7 @@ class Ui_MainWindow(object):
         # Mój kod
 
         # Przyciski i autoodświeżanie
-        self.comboBox.currentTextChanged.connect(self.showData)
+        self.comboBox.currentIndexChanged.connect(self.showData)
         self.pushButton.clicked.connect(self.addNote)
         self.pushButton_2.clicked.connect(self.logout)
 

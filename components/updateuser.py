@@ -48,7 +48,7 @@ class Ui_UpdateUser(object):
         self.main.db.execute(f"UPDATE uzytkownicy SET imie = '{newUserData['imie']}', nazwisko = '{newUserData['nazwisko']}', email = '{newUserData['email']}', haslo = '{newUserData['haslo']}', rola = '{newUserData['rola']}' WHERE id_uzytkownika = {userid+1}") # query
         self.comboBox_2.setItemText(userid, f"{newUserData['imie']} {newUserData['nazwisko']}") # zmiana nazwy w comboboxie
         messageBox("Sukces", QtWidgets.QMessageBox.Information, "Zmiany zostały zapisane.")
-        self.main.getUserData()
+        self.main.getUserInfo()
     
     def validate(self):
         newUserData = {}
